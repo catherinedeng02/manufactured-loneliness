@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2.1 — Three Doors Into the Same Room</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,900;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --ink:#f0ede6;
+  --bg:#0e0e0d;
+  --blue:#5090c8;
+  --dim:#55554f;
+  --faint:#33332f;
+  --line:#1e1e1c;
+  --warm:#c8a068;
+  --rust:#b06a5a;
+}
+
+body { background:var(--bg); color:var(--ink); font-family:'DM Mono',monospace; min-height:100vh; }
+
+.topbar {
+  position:sticky; top:0; z-index:60;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1rem 3rem; background:rgba(14,14,13,.94); backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+}
+.back {
+  font-size:9px; letter-spacing:.15em; text-transform:uppercase;
+  color:var(--dim); text-decoration:none;
+  display:inline-flex; align-items:center; gap:.5rem; transition:color .3s;
+}
+.back:hover { color:var(--ink); }
+.back .arw { display:inline-block; transition:transform .3s; }
+.back:hover .arw { transform:translateX(-3px); }
+.crumb { font-size:9px; letter-spacing:.15em; color:var(--faint); text-transform:uppercase; }
+
+.wrap { padding:0 3rem; }
+section { padding:5rem 0; border-bottom:1px solid #161614; }
+section:last-of-type { border-bottom:none; }
+
+.eyebrow { font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--faint); margin-bottom:1.4rem; }
+h1 { font-family:'Playfair Display',serif; font-size:clamp(2rem,4.8vw,3.8rem); font-weight:900; line-height:1.05; letter-spacing:-.01em; }
+h2 { font-family:'Playfair Display',serif; font-size:clamp(1.3rem,2.6vw,2rem); font-weight:900; line-height:1.2; margin-bottom:1.6rem; }
+.lede { font-style:italic; font-size:13px; color:var(--dim); margin-top:1.5rem; letter-spacing:.02em; }
+p.body { font-size:12px; line-height:2.1; color:#8a8a80; max-width:660px; margin-bottom:1.4rem; }
+p.body strong { color:var(--ink); font-weight:400; }
+.note { font-size:10px; line-height:1.9; color:#4a4a44; margin-top:1.2rem; max-width:660px; }
+
+/* ══ REGION EXPLORER ══ */
+.explorer { margin-top:2.5rem; border:1px solid var(--line); }
+
+.region-tabs { display:flex; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+.region-tabs button {
+  flex:1; min-width:130px;
+  background:transparent; border:none; border-right:1px solid var(--line);
+  color:var(--faint); font-family:'DM Mono',monospace;
+  font-size:9px; letter-spacing:.14em; text-transform:uppercase;
+  padding:1rem .8rem; cursor:pointer; text-align:left;
+  transition:color .35s, background .35s;
+}
+.region-tabs button:last-child { border-right:none; }
+.region-tabs button:hover { color:#88887e; }
+.region-tabs button.on { color:var(--ink); background:#141412; }
+.region-tabs button .tgrow { display:block; margin-top:.5rem; font-size:11px; letter-spacing:.02em; color:var(--faint); }
+.region-tabs button.on .tgrow { color:var(--blue); }
+
+.region-body { padding:2.2rem 1.8rem; }
+
+.rb-head { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1.4rem; margin-bottom:2.2rem; }
+.rb-name { font-family:'Playfair Display',serif; font-size:1.7rem; font-weight:900; line-height:1.15; }
+.rb-door {
+  font-size:8px; letter-spacing:.16em; text-transform:uppercase;
+  border:1px solid rgba(80,144,200,.35); color:var(--blue);
+  padding:.3rem .6rem; white-space:nowrap;
+}
+
+.rb-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:1.6rem; margin-bottom:2.2rem; }
+.rb-cell .cv { font-family:'Playfair Display',serif; font-size:1.55rem; font-weight:900; line-height:1.1; }
+.rb-cell .cl { font-size:9px; color:#5a5a54; margin-top:.55rem; line-height:1.7; }
+
+/* channel bar */
+.mixbar { height:34px; display:flex; overflow:hidden; border:1px solid var(--line); }
+.mixbar .seg { display:flex; align-items:center; padding:0 .8rem; font-size:9px; letter-spacing:.1em; white-space:nowrap; transition:width .6s cubic-bezier(.4,0,.2,1); }
+.mixbar .off { background:rgba(80,144,200,.26); color:#c8d8e8; }
+.mixbar .onl { background:rgba(200,160,104,.22); color:#e0cbaa; }
+.mix-key { display:flex; gap:1.6rem; margin-top:.9rem; flex-wrap:wrap; }
+.mix-key span { font-size:9px; color:var(--dim); display:inline-flex; align-items:center; gap:.45rem; }
+.kbar { width:14px; height:2px; display:inline-block; }
+
+.rb-read { margin-top:1.8rem; padding-top:1.4rem; border-top:1px solid var(--line); font-size:11.5px; line-height:2; color:#8a8a80; min-height:80px; }
+.rb-read strong { color:var(--ink); font-weight:400; }
+
+/* ══ COMPARISON CHART ══ */
+.chart-frame { margin-top:2.5rem; border:1px solid var(--line); padding:2rem 1.5rem 1.2rem; }
+.chart-head { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:2rem; }
+.chart-title { font-size:10px; letter-spacing:.15em; text-transform:uppercase; color:var(--dim); }
+svg { width:100%; height:auto; display:block; overflow:visible; }
+.axis-line { stroke:#262623; stroke-width:1; }
+.grid-line { stroke:#1a1a18; stroke-width:1; }
+.axis-text { fill:#44443f; font-family:'DM Mono',monospace; font-size:9px; }
+.readout { margin-top:1.5rem; padding-top:1.2rem; border-top:1px solid var(--line); font-size:11px; line-height:1.9; color:#8a8a80; }
+.readout strong { color:var(--ink); font-weight:400; }
+
+/* ══ IMPLICATION CARDS ══ */
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1px; background:var(--line); margin-top:2.5rem; }
+.card { background:var(--bg); padding:1.8rem 1.35rem; transition:background .4s; border-top:2px solid transparent; }
+.card:hover { background:#141412; }
+.card.flag { border-top-color:var(--rust); }
+.card .cn { font-size:8px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); margin-bottom:.9rem; }
+.card .ct { font-family:'Playfair Display',serif; font-size:1rem; font-weight:900; line-height:1.25; margin-bottom:.75rem; }
+.card.flag .ct { color:var(--rust); }
+.card .cb { font-size:10px; line-height:1.9; color:#6a6a62; }
+
+/* ══ VERDICT ══ */
+.verdict { border-left:2px solid var(--blue); padding:1.6rem 0 1.6rem 1.6rem; margin-top:2.5rem; max-width:700px; }
+.verdict .vq { font-family:'Playfair Display',serif; font-size:clamp(1.05rem,2vw,1.45rem); font-weight:900; line-height:1.35; margin-bottom:1rem; }
+.verdict p { font-size:11.5px; line-height:2; color:#8a8a80; }
+
+.next {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:2.5rem 3rem; border-top:1px solid var(--line);
+  text-decoration:none; color:var(--ink); transition:background .4s, padding-left .5s;
+}
+.next:hover { background:#131311; padding-left:3.9rem; }
+.next .nlabel { font-size:9px; letter-spacing:.15em; text-transform:uppercase; color:var(--faint); margin-bottom:.6rem; }
+.next .ntitle { font-family:'Playfair Display',serif; font-size:1.25rem; font-weight:900; }
+.next .narw { font-size:9px; letter-spacing:.15em; text-transform:uppercase; }
+
+.footnote { padding:2.5rem 3rem 4rem; font-size:9px; color:#2e2e2b; line-height:2; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="s2-arrive.html"><span class="arw">&larr;</span> Arrive, Belong, and Repeat.</a>
+  <span class="crumb">2.1</span>
+</div>
+
+<div class="wrap">
+
+  <section>
+    <div class="eyebrow">Chapter 2.1</div>
+    <h1>Three Doors Into<br>the Same Room</h1>
+    <div class="lede">The Americas found it online. Asia found it on a street.</div>
+  </section>
+
+  <!-- ══ EXPLORER ══ -->
+  <section>
+    <h2>Four regions. Four different businesses.</h2>
+    <p class="body">
+      FY2025 was the first year Pop Mart reported on a four-region basis, and the disclosure
+      makes something visible that group-level growth had been hiding. Every region grew in
+      triple digits. <strong>None of them grew the same way.</strong> The difference is not
+      pace &mdash; it is the door the customer walked through.
+    </p>
+
+    <div class="explorer">
+      <div class="region-tabs" id="tabs"></div>
+      <div class="region-body">
+        <div class="rb-head">
+          <div class="rb-name" id="rName">&mdash;</div>
+          <div class="rb-door" id="rDoor">&mdash;</div>
+        </div>
+
+        <div class="rb-grid">
+          <div class="rb-cell">
+            <div class="cv" id="rRev">&mdash;</div>
+            <div class="cl">FY2025 revenue, RMB bn</div>
+          </div>
+          <div class="rb-cell">
+            <div class="cv" id="rGrowth">&mdash;</div>
+            <div class="cl">Year-on-year growth</div>
+          </div>
+          <div class="rb-cell">
+            <div class="cv" id="rStores">&mdash;</div>
+            <div class="cl">Physical stores at year end</div>
+          </div>
+          <div class="rb-cell">
+            <div class="cv" id="rShare">&mdash;</div>
+            <div class="cl">Share of group revenue</div>
+          </div>
+        </div>
+
+        <div class="mixbar" id="mixbar"></div>
+        <div class="mix-key">
+          <span><i class="kbar" style="background:#5090c8"></i> Offline &mdash; stores and robot shops</span>
+          <span><i class="kbar" style="background:#c8a068"></i> Online &mdash; app, own site, marketplaces</span>
+        </div>
+
+        <div class="rb-read" id="rRead"></div>
+      </div>
+    </div>
+
+    <p class="note">
+      Channel splits are FY2025 where disclosed and derived from interim disclosure where the
+      full-year split is not broken out. Store counts are year-end 2025.
+    </p>
+  </section>
+
+  <!-- ══ THE DIVIDE ══ -->
+  <section>
+    <h2>One market is not like the others.</h2>
+    <p class="body">
+      Placed side by side, three regions cluster and one separates. China, Asia-Pacific and
+      Europe all run majority offline, in a band between roughly a third and two-fifths
+      online. The Americas sits alone at <strong>64% online</strong> &mdash; and it is
+      simultaneously the fastest-growing region in the group, at 748%.
+    </p>
+
+    <div class="chart-frame">
+      <div class="chart-head">
+        <span class="chart-title">Online share of regional revenue &nbsp;&middot;&nbsp; FY2025</span>
+      </div>
+      <svg viewBox="0 0 760 290" id="mixChart" role="img" aria-label="Online share of revenue by region"></svg>
+      <div class="readout">
+        Within the Americas, revenue from Pop Mart's own app and website grew
+        <strong>1,395%</strong> and TikTok revenue grew <strong>866%</strong>. In the first
+        half of 2025 the app briefly reached number one on the US App Store shopping chart.
+        This is not a retail rollout that happens to have an e-commerce arm. It is a digital
+        acquisition engine with sixty-four stores attached.
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ WHY IT MATTERS ══ -->
+  <section>
+    <h2>Why the door changes the business.</h2>
+    <p class="body">
+      Channel mix is usually treated as an operational detail. Here it determines four
+      separate things &mdash; and each of them compounds.
+    </p>
+
+    <div class="cards">
+      <div class="card">
+        <div class="cn">Consequence 01</div>
+        <div class="ct">Who owns<br>the customer</div>
+        <div class="cb">An app purchase produces an identity, a history and a push channel. A store purchase produces a transaction. China closed this gap with 72.6m registered members; a new market has no such asset on day one.</div>
+      </div>
+      <div class="card">
+        <div class="cn">Consequence 02</div>
+        <div class="ct">Where demand<br>actually comes from</div>
+        <div class="cb">Offline demand is generated by the location. Online demand is generated by a feed. One is a lease renewal; the other is an algorithm the company does not control.</div>
+      </div>
+      <div class="card">
+        <div class="cn">Consequence 03</div>
+        <div class="ct">What the<br>purchase feels like</div>
+        <div class="cb">The blind box is a physical ritual &mdash; the shake, the queue, the reveal in front of others. Shipped to a doorstep four days later, the same object delivers a materially thinner version of the same experience.</div>
+      </div>
+      <div class="card flag">
+        <div class="cn">Consequence 04</div>
+        <div class="ct">How durable<br>the demand is</div>
+        <div class="cb">Feed-driven acquisition is fast, cheap and reversible. It builds a customer base at speed without necessarily building a habit &mdash; which is the question 2.3 puts to the disclosures, and finds unanswered.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ VERDICT ══ -->
+  <section>
+    <div class="eyebrow">So what</div>
+    <div class="verdict">
+      <div class="vq">The fastest-growing market is also the least like the one the playbook was written for.</div>
+      <p>
+        Fifteen years of operating experience in China produced a specific competence: run a
+        dense physical network, convert footfall into membership, and monetise a ritual that
+        happens in a shop. The Americas grew 748% in 2025 without using most of that
+        competence. Two-thirds of the revenue arrived through a channel where the queue, the
+        shelf and the shake do not exist.
+      </p>
+      <p style="margin-top:1.2rem;">
+        That is not a failure &mdash; it is arguably the most impressive commercial result in
+        the company's history. But it means the group's largest source of growth is being
+        produced by a machine it has been running for roughly two years, in a market where the
+        underlying behaviour has not yet had time to prove itself repeatable.
+      </p>
+      <p style="margin-top:1.2rem;">
+        Which raises the obvious question about the other channel. If the store is where the
+        ritual lives, what is a store actually worth &mdash; and why do eighty-five of them in
+        Asia out-earn four hundred and forty-five in China? That is <strong>2.2</strong>.
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<a class="next" href="s2-2-what-a-store-is-for.html">
+  <div>
+    <div class="nlabel">Next &nbsp;&middot;&nbsp; 2.2</div>
+    <div class="ntitle">What a Store Is Actually For</div>
+  </div>
+  <span class="narw">Enter &rarr;</span>
+</a>
+
+<div class="footnote">
+  Regional revenue FY2025: China RMB 20.851bn (+134.6%), Asia-Pacific excluding China RMB
+  8.011bn (+157.6%), Americas RMB 6.806bn (+748.4%), Europe and other RMB 1.451bn (+506.3%).
+  Group revenue RMB 37.12bn. China online revenue RMB 8.52bn (+207.4%), of which the
+  mini-programme accounted for RMB 3.42bn. Americas online revenue represented 64.0% of
+  regional revenue; own app and website revenue grew 1,395.4% and TikTok revenue grew 865.9%.
+  Store counts at 31 December 2025: China 445, Asia-Pacific 85, Americas 64, Europe 36; 630
+  stores across 20 countries and 2,637 robot shops in total. Asia-Pacific and Europe channel
+  splits are derived from H1 2025 interim disclosure, where offline revenue was RMB 1.53bn
+  against online RMB 1.07bn, and offline RMB 0.28bn against online RMB 0.16bn respectively.
+</div>
+
+<script>
+var REGIONS = [
+  {
+    id:'china', tab:'China', growth:'+134.6%',
+    name:'China',
+    door:'Door — the shop',
+    rev:'20.85', g:'+134.6%', stores:'445', share:'56.2%',
+    offline:59, online:41,
+    read:'The mature market, and the only one with a fully built membership system behind it. Offline still carries the majority of revenue across 445 stores and 2,396 robot shops, while online grew 207.4% to RMB 8.52bn — of which the mini-programme alone contributed RMB 3.42bn. Notably, China\'s <strong>share of group revenue fell from 68.2% to 56.2%</strong>, not because it slowed, but because everywhere else grew faster.'
+  },
+  {
+    id:'apac', tab:'Asia-Pacific', growth:'+157.6%',
+    name:'Asia-Pacific',
+    door:'Door — the destination',
+    rev:'8.01', g:'+157.6%', stores:'85', share:'21.6%',
+    offline:59, online:41,
+    read:'The largest overseas region, and the one that most resembles China structurally. Growth is being driven by a deliberate travel-retail strategy — flagship tourist destinations and airports — which places the brand in front of buyers at exactly the moment they are looking for something to carry home. Eighty-five stores generated RMB 8.01bn, a level of store productivity examined in <strong>2.2</strong>.'
+  },
+  {
+    id:'americas', tab:'Americas', growth:'+748.4%',
+    name:'The Americas',
+    door:'Door — the feed',
+    rev:'6.81', g:'+748.4%', stores:'64', share:'18.3%',
+    offline:36, online:64,
+    read:'The outlier, and the story of the year. Revenue grew more than eightfold while the store count went from 22 to 64. <strong>Sixty-four percent of revenue came through online channels</strong> — own app and website up 1,395.4%, TikTok up 865.9%. Regional share of group revenue rose from 6.2% to 18.3% in a single year. This market was acquired through a screen, not a street.'
+  },
+  {
+    id:'europe', tab:'Europe & other', growth:'+506.3%',
+    name:'Europe &amp; other',
+    door:'Door — the landmark',
+    rev:'1.45', g:'+506.3%', stores:'36', share:'3.9%',
+    offline:64, online:36,
+    read:'The smallest region and the most deliberately paced. The strategy here is positional rather than volumetric: flagship sites in Cambridge, Copenhagen, Rotterdam, Lyon and Barcelona, with first stores opened in Germany and Denmark during the year. Thirty-six stores produced RMB 1.45bn. Europe is being built as a brand statement first and a revenue line second — a reasonable sequencing, but it means the region contributes under 4% of the group.'
+  }
+];
+
+(function () {
+  var tabs = document.getElementById('tabs');
+  var active = 0;
+
+  REGIONS.forEach(function (r, i) {
+    var b = document.createElement('button');
+    b.innerHTML = r.tab + '<span class="tgrow">' + r.growth + '</span>';
+    b.addEventListener('click', function () { active = i; render(); });
+    tabs.appendChild(b);
+  });
+
+  function render() {
+    var r = REGIONS[active];
+    Array.prototype.forEach.call(tabs.children, function (b, i) {
+      b.classList.toggle('on', i === active);
+    });
+
+    document.getElementById('rName').innerHTML   = r.name;
+    document.getElementById('rDoor').textContent = r.door;
+    document.getElementById('rRev').textContent  = r.rev;
+    document.getElementById('rGrowth').textContent = r.g;
+    document.getElementById('rStores').textContent = r.stores;
+    document.getElementById('rShare').textContent  = r.share;
+
+    document.getElementById('mixbar').innerHTML =
+      '<div class="seg off" style="width:' + r.offline + '%">' + r.offline + '% offline</div>' +
+      '<div class="seg onl" style="width:' + r.online + '%">' + r.online + '% online</div>';
+
+    document.getElementById('rRead').innerHTML = r.read;
+  }
+
+  render();
+})();
+
+/* ══ ONLINE SHARE CHART ══ */
+(function () {
+  var svg = document.getElementById('mixChart');
+  var L = 120, R = 740, T = 30, B = 230;
+  var data = [
+    { r:'Europe & other', v:36, out:false },
+    { r:'China',          v:41, out:false },
+    { r:'Asia-Pacific',   v:41, out:false },
+    { r:'The Americas',   v:64, out:true  }
+  ];
+
+  function yAt(i) { return T + (B - T) * (i + .5) / data.length; }
+  function xAt(v) { return L + (R - L) * (v / 80); }
+
+  var h = '';
+  [0, 20, 40, 60, 80].forEach(function (v) {
+    h += '<line class="grid-line" x1="' + xAt(v) + '" y1="' + T + '" x2="' + xAt(v) + '" y2="' + B + '"></line>' +
+         '<text class="axis-text" x="' + xAt(v) + '" y="' + (B + 20) + '" text-anchor="middle">' + v + '%</text>';
+  });
+
+  var bh = 26;
+  data.forEach(function (d, i) {
+    var y = yAt(i), c = d.out ? '#c8a068' : '#5090c8';
+    h += '<text class="axis-text" x="' + (L - 14) + '" y="' + (y + 4) + '" text-anchor="end" fill="' +
+         (d.out ? '#c8a068' : '#6a6a62') + '">' + d.r + '</text>' +
+         '<rect x="' + L + '" y="' + (y - bh / 2) + '" width="' + (xAt(d.v) - L) + '" height="' + bh +
+         '" fill="' + c + '" opacity="' + (d.out ? '.34' : '.22') + '"></rect>' +
+         '<line x1="' + xAt(d.v) + '" y1="' + (y - bh / 2) + '" x2="' + xAt(d.v) + '" y2="' + (y + bh / 2) +
+         '" stroke="' + c + '" stroke-width="2"></line>' +
+         '<text class="axis-text" x="' + (xAt(d.v) + 10) + '" y="' + (y + 4) + '" fill="' + c + '">' +
+         d.v + '%</text>';
+  });
+
+  h += '<line class="axis-line" x1="' + L + '" y1="' + B + '" x2="' + R + '" y2="' + B + '"></line>';
+  svg.innerHTML = h;
+})();
+</script>
+
+</body>
+</html>

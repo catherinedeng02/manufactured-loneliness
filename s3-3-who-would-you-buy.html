@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3.3 — Who Would You Buy?</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,900;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --ink:#f0ede6;
+  --bg:#0e0e0d;
+  --blush:#c86880;
+  --dim:#55554f;
+  --faint:#33332f;
+  --line:#1e1e1c;
+  --warm:#c8a068;
+  --sage:#7a9a80;
+  --rust:#b06a5a;
+}
+
+body { background:var(--bg); color:var(--ink); font-family:'DM Mono',monospace; min-height:100vh; }
+
+.topbar {
+  position:sticky; top:0; z-index:60;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1rem 3rem; background:rgba(14,14,13,.94); backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+}
+.back {
+  font-size:9px; letter-spacing:.15em; text-transform:uppercase;
+  color:var(--dim); text-decoration:none;
+  display:inline-flex; align-items:center; gap:.5rem; transition:color .3s;
+}
+.back:hover { color:var(--ink); }
+.back .arw { display:inline-block; transition:transform .3s; }
+.back:hover .arw { transform:translateX(-3px); }
+.crumb { font-size:9px; letter-spacing:.15em; color:var(--faint); text-transform:uppercase; }
+
+.wrap { padding:0 3rem; }
+section { padding:5rem 0; border-bottom:1px solid #161614; }
+section:last-of-type { border-bottom:none; }
+
+.eyebrow { font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--faint); margin-bottom:1.4rem; }
+h1 { font-family:'Playfair Display',serif; font-size:clamp(2rem,4.8vw,3.8rem); font-weight:900; line-height:1.05; letter-spacing:-.01em; }
+h2 { font-family:'Playfair Display',serif; font-size:clamp(1.3rem,2.6vw,2rem); font-weight:900; line-height:1.2; margin-bottom:1.6rem; }
+.lede { font-style:italic; font-size:13px; color:var(--dim); margin-top:1.5rem; letter-spacing:.02em; }
+p.body { font-size:12px; line-height:2.1; color:#8a8a80; max-width:660px; margin-bottom:1.4rem; }
+p.body strong { color:var(--ink); font-weight:400; }
+.note { font-size:10px; line-height:1.9; color:#4a4a44; margin-top:1.2rem; max-width:660px; }
+
+/* pull quote */
+.pull {
+  margin:2.5rem 0; padding:1.8rem 0 1.8rem 1.8rem;
+  border-left:2px solid var(--blush); max-width:680px;
+}
+.pull .pq { font-family:'Playfair Display',serif; font-size:clamp(1.1rem,2.1vw,1.5rem); font-weight:900; line-height:1.35; }
+.pull .ps { font-size:10.5px; line-height:1.95; color:#6a6a62; margin-top:1rem; }
+
+/* archetypes */
+.arch { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:1px; background:var(--line); margin-top:2.5rem; }
+.acard { background:var(--bg); padding:1.9rem 1.4rem; transition:background .4s; border-top:2px solid transparent; }
+.acard:hover { background:#141412; }
+.acard.a1 { border-top-color:var(--warm); }
+.acard.a2 { border-top-color:var(--sage); }
+.acard.a3 { border-top-color:#5090c8; }
+.acard.a4 { border-top-color:var(--rust); }
+.acard .an { font-size:8px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); margin-bottom:.9rem; }
+.acard .at { font-family:'Playfair Display',serif; font-size:1.05rem; font-weight:900; line-height:1.25; margin-bottom:.8rem; }
+.acard .ab { font-size:10px; line-height:1.9; color:#6a6a62; }
+.acard .agap {
+  display:block; margin-top:1.1rem; padding-top:.9rem; border-top:1px solid #181816;
+  font-size:9px; line-height:1.8; color:#7a7a72;
+}
+.acard .agap b { display:block; font-size:8px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); margin-bottom:.4rem; font-weight:400; }
+
+/* screener */
+.model { margin-top:2.5rem; border:1px solid var(--line); padding:2rem 1.5rem 1.4rem; }
+.model-head { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:1.8rem; }
+.model-title { font-size:10px; letter-spacing:.15em; text-transform:uppercase; color:var(--dim); }
+.model-flag { font-size:8px; letter-spacing:.14em; text-transform:uppercase; color:var(--warm); border:1px solid rgba(200,160,104,.32); padding:.25rem .55rem; }
+
+.controls { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:1.7rem; margin-bottom:2.2rem; }
+.ctrl label { display:block; font-size:9px; letter-spacing:.11em; text-transform:uppercase; color:var(--dim); margin-bottom:.75rem; line-height:1.7; }
+.ctrl .cval { color:var(--ink); }
+.ctrl input[type=range] { width:100%; accent-color:#c86880; }
+.ctrl .chint { font-size:9px; color:#3e3e3a; margin-top:.55rem; line-height:1.7; }
+
+.results { border-top:1px solid var(--line); padding-top:1.8rem; }
+.rrow { display:flex; align-items:center; gap:1.2rem; padding:.85rem 0; border-bottom:1px solid #161614; }
+.rrow:last-of-type { border-bottom:none; }
+.rrank { flex-shrink:0; width:26px; font-size:10px; color:var(--faint); }
+.rname { flex-shrink:0; width:170px; font-size:11px; color:#a5a59a; }
+.rbar { flex:1; height:20px; background:#141412; position:relative; overflow:hidden; }
+.rbar span { position:absolute; left:0; top:0; bottom:0; transition:width .5s cubic-bezier(.4,0,.2,1); }
+.rscore { flex-shrink:0; width:42px; text-align:right; font-family:'Playfair Display',serif; font-size:1rem; font-weight:900; }
+
+.model-read { margin-top:1.8rem; padding-top:1.4rem; border-top:1px solid var(--line); font-size:11px; line-height:1.95; color:#8a8a80; min-height:84px; }
+.model-read strong { color:var(--ink); font-weight:400; }
+
+/* walk-away tests */
+.tests { margin-top:2.5rem; border-top:1px solid var(--line); }
+.trow { display:flex; align-items:flex-start; gap:1.6rem; padding:1.3rem 0; border-bottom:1px solid #161614; transition:background .35s; }
+.trow:hover { background:#121210; }
+.tnum { flex-shrink:0; width:34px; font-size:10px; color:var(--faint); padding-top:.2rem; }
+.tbody { flex:1; }
+.tq { font-family:'Playfair Display',serif; font-size:1.05rem; font-weight:900; line-height:1.3; margin-bottom:.6rem; }
+.tw { font-size:10.5px; line-height:1.95; color:#7a7a72; }
+.tw b { color:var(--ink); font-weight:400; }
+
+/* verdict */
+.verdict { border-left:2px solid var(--blush); padding:1.6rem 0 1.6rem 1.6rem; margin-top:2.5rem; max-width:700px; }
+.verdict .vq { font-family:'Playfair Display',serif; font-size:clamp(1.05rem,2vw,1.45rem); font-weight:900; line-height:1.35; margin-bottom:1rem; }
+.verdict p { font-size:11.5px; line-height:2; color:#8a8a80; }
+
+.next {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:2.5rem 3rem; border-top:1px solid var(--line);
+  text-decoration:none; color:var(--ink); transition:background .4s, padding-left .5s;
+}
+.next:hover { background:#131311; padding-left:3.9rem; }
+.next .nlabel { font-size:9px; letter-spacing:.15em; text-transform:uppercase; color:var(--faint); margin-bottom:.6rem; }
+.next .ntitle { font-family:'Playfair Display',serif; font-size:1.25rem; font-weight:900; }
+.next .narw { font-size:9px; letter-spacing:.15em; text-transform:uppercase; }
+
+.footnote { padding:2.5rem 3rem 4rem; font-size:9px; color:#2e2e2b; line-height:2; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="s3-missing.html"><span class="arw">&larr;</span> Something Is Still Missing.</a>
+  <span class="crumb">3.3</span>
+</div>
+
+<div class="wrap">
+
+  <section>
+    <div class="eyebrow">Chapter 3.3</div>
+    <h1>Who Would<br>You Buy?</h1>
+    <div class="lede">A screening framework for an acquisition that has never been made.</div>
+  </section>
+
+  <!-- ══ THE GAP ══ -->
+  <section>
+    <h2>Name the gap before naming the target.</h2>
+    <p class="body">
+      Most acquisition discussions begin with a list of companies. That is the wrong end. The
+      three preceding chapters have identified something specific, and the screen has to be
+      built against it rather than against availability.
+    </p>
+    <p class="body">
+      Pop Mart owns faces. What it does not own, and what nothing in Sections One or Two
+      produces, is <strong>accumulated meaning</strong>. Hello Kitty has survived five decades
+      not because the design is superior but because fifty years of context have been deposited
+      onto it. Disney's characters arrive attached to stories that people have already sat
+      through. A Pop Mart character arrives attached to a series name and a hidden-edition
+      ratio.
+    </p>
+
+    <div class="pull">
+      <div class="pq">A face decays. A story compounds.</div>
+      <div class="ps">
+        This is the mechanical reason character concentration is more dangerous here than at
+        Sanrio. An aesthetic object depends on remaining fashionable. A narrative object
+        accumulates the attachment of everyone who has ever followed it, and that attachment is
+        not reversed by the object falling out of fashion.
+      </div>
+    </div>
+
+    <p class="body">
+      Read that way, the strategic gap is not a shortage of characters. It is the absence of a
+      mechanism for turning characters into things people remember. Every archetype below is
+      scored against that, and against the replacement-rate problem defined in 3.1.
+    </p>
+  </section>
+
+  <!-- ══ ARCHETYPES ══ -->
+  <section>
+    <h2>Four kinds of thing you could buy.</h2>
+    <p class="body">
+      Deliberately archetypes rather than named companies. Naming specific targets for a
+      transaction that has not been announced would be speculation dressed as analysis; the
+      useful work is defining what class of asset closes which gap, and at what integration
+      risk.
+    </p>
+
+    <div class="arch">
+      <div class="acard a1">
+        <div class="an">Archetype A</div>
+        <div class="at">The Narrative<br>Studio</div>
+        <div class="ab">
+          An animation or content house capable of building stories around existing characters
+          — films, series, games. Converts an aesthetic object into a narrative one.
+        </div>
+        <span class="agap">
+          <b>Closes</b>
+          The meaning gap. Extends the life of every character already owned rather than adding new ones.
+        </span>
+      </div>
+
+      <div class="acard a2">
+        <div class="an">Archetype B</div>
+        <div class="at">The Artist<br>Platform</div>
+        <div class="ab">
+          A designer collective, agency or incubator with a pipeline of creators and a track
+          record of signing them early. Buys the input side of the business.
+        </div>
+        <span class="agap">
+          <b>Closes</b>
+          The replacement-rate gap. Directly addresses 3.1 — but only if the creators stay.
+        </span>
+      </div>
+
+      <div class="acard a3">
+        <div class="an">Archetype C</div>
+        <div class="at">The Western<br>Brand</div>
+        <div class="ab">
+          An established consumer or collectible brand with Western cultural standing and
+          retail relationships. Buys legitimacy and shelf space rather than characters.
+        </div>
+        <span class="agap">
+          <b>Closes</b>
+          The 2.1 gap — a market acquired through a feed, with no proven habit underneath it.
+        </span>
+      </div>
+
+      <div class="acard a4">
+        <div class="an">Archetype D</div>
+        <div class="at">The Adjacent<br>Category</div>
+        <div class="ab">
+          Apparel, lifestyle, hospitality, experiences. Buys new surfaces on which existing
+          characters can appear and be paid for.
+        </div>
+        <span class="agap">
+          <b>Closes</b>
+          Revenue per character, not character count. The lowest-risk option and the least transformative.
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ SCREENER ══ -->
+  <section>
+    <h2>Weight the criteria and see what wins.</h2>
+    <p class="body">
+      A screen is only as good as its weights, and the weights are a judgement about which risk
+      matters most. Set them below. The scoring is deliberately visible rather than hidden
+      &mdash; a screen that cannot be argued with is not a screen.
+    </p>
+
+    <div class="model">
+      <div class="model-head">
+        <span class="model-title">Target archetype screen</span>
+        <span class="model-flag">Framework, not recommendation</span>
+      </div>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label>Raises replacement rate &mdash; <span class="cval" id="w1Out">30</span></label>
+          <input type="range" id="w1" min="0" max="50" value="30">
+          <div class="chint">The 3.1 problem: producing the next character before it is needed.</div>
+        </div>
+        <div class="ctrl">
+          <label>Deepens existing characters &mdash; <span class="cval" id="w2Out">30</span></label>
+          <input type="range" id="w2" min="0" max="50" value="30">
+          <div class="chint">Narrative and accumulated meaning. Slows decay on what is already owned.</div>
+        </div>
+        <div class="ctrl">
+          <label>Western legitimacy &mdash; <span class="cval" id="w3Out">20</span></label>
+          <input type="range" id="w3" min="0" max="50" value="20">
+          <div class="chint">The 2.3 problem: a market that arrived but has not been shown to return.</div>
+        </div>
+        <div class="ctrl">
+          <label>Low integration risk &mdash; <span class="cval" id="w4Out">20</span></label>
+          <input type="range" id="w4" min="0" max="50" value="20">
+          <div class="chint">Whether the value survives ownership. Creative assets are retainable only by consent.</div>
+        </div>
+      </div>
+
+      <div class="results" id="results"></div>
+      <div class="model-read" id="mRead"></div>
+    </div>
+
+    <p class="note">
+      Archetype scores are the author's judgement on a ten-point scale, stated so they can be
+      disputed. The purpose of the tool is not to produce an answer but to make explicit which
+      belief about risk is driving whichever answer you reach.
+    </p>
+  </section>
+
+  <!-- ══ WALK AWAY ══ -->
+  <section>
+    <h2>Four questions that should stop a deal.</h2>
+    <p class="body">
+      The screen identifies what to look for. Diligence is about what would make you leave.
+      These are the tests this particular acquirer, with this particular gap, should apply.
+    </p>
+
+    <div class="tests">
+      <div class="trow">
+        <span class="tnum">01</span>
+        <div class="tbody">
+          <div class="tq">Does the value walk out at six p.m.?</div>
+          <div class="tw">
+            Disney's acquisitions worked because the creative organisations stayed and retained
+            autonomy. If the asset is a small number of named people, <b>the purchase price buys
+            a retention problem, not a capability</b>. Earn-outs postpone this question rather
+            than answering it.
+          </div>
+        </div>
+      </div>
+      <div class="trow">
+        <span class="tnum">02</span>
+        <div class="tbody">
+          <div class="tq">Would this survive the acquirer's own strengths?</div>
+          <div class="tw">
+            Section One describes an operation exceptionally good at scaling output. Applied to
+            a newly acquired character portfolio, that same capability is <b>the mechanism from
+            1.3</b> — the one that consumes scarcity. The integration risk here is not
+            incompetence. It is competence pointed at the wrong variable.
+          </div>
+        </div>
+      </div>
+      <div class="trow">
+        <span class="tnum">03</span>
+        <div class="tbody">
+          <div class="tq">Is it solving the concentration or adding to it?</div>
+          <div class="tw">
+            An acquisition that makes existing characters more profitable does not reduce
+            dependence on them. Archetype D scores well on risk precisely because it is the
+            least transformative &mdash; <b>it increases revenue per face while leaving the
+            number of faces unchanged</b>.
+          </div>
+        </div>
+      </div>
+      <div class="trow">
+        <span class="tnum">04</span>
+        <div class="tbody">
+          <div class="tq">Is the timing being set by the balance sheet?</div>
+          <div class="tw">
+            The capacity to buy arrived in the same year as the record result. Companies acquire
+            most readily at the point their currency is strongest, which is also the point at
+            which <b>the case for needing anything is weakest</b>. Sanrio's lesson runs the
+            other way: it changed strategy only after seven years of decline made the need
+            undeniable.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ VERDICT ══ -->
+  <section>
+    <div class="eyebrow">So what</div>
+    <div class="verdict">
+      <div class="vq">On most weightings the answer is a studio, and a studio is the hardest thing on the list to buy well.</div>
+      <p>
+        Run the screen with almost any reasonable weights and the narrative archetypes rank
+        highest, because the gap identified across three chapters is not a shortage of
+        characters but a shortage of the thing that makes characters last. That is the correct
+        conclusion, and it is an awkward one: content organisations are the archetype where the
+        asset is most likely to leave, the culture is furthest from the acquirer's own, and the
+        payback is longest.
+      </p>
+      <p style="margin-top:1.2rem;">
+        There is also an argument the screen cannot capture. Every path examined in 3.2 that
+        actually worked took either a decade or an unrepeatable balance sheet. Sanrio built.
+        Disney bought at a scale available to almost nobody. Neither route is fast, and
+        <strong>the concentration problem in 3.1 is not obviously a slow one</strong>.
+      </p>
+      <p style="margin-top:1.2rem;">
+        Which leaves the question this entire section has been circling. If what is missing is
+        accumulated meaning &mdash; the attachment that fifty years deposits onto a face
+        &mdash; then no transaction produces it, because it is not a thing anyone owns and
+        therefore not a thing anyone can sell. That is <strong>3.4</strong>.
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<a class="next" href="s3-4-what-money-cannot-buy.html">
+  <div>
+    <div class="nlabel">Next &nbsp;&middot;&nbsp; 3.4</div>
+    <div class="ntitle">What Money Cannot Buy</div>
+  </div>
+  <span class="narw">Enter &rarr;</span>
+</a>
+
+<div class="footnote">
+  This chapter describes no transaction under consideration and names no target. Archetypes are
+  analytical constructions and the scores attached to them are the author's judgement, disclosed
+  so that they can be challenged. References to Disney, Sanrio and Funko draw on the public
+  record described in 3.2. Nothing here constitutes investment advice or a recommendation.
+</div>
+
+<script>
+/* score matrix: [replacement, deepen, western, low integration risk] on 0-10 */
+var ARCH = [
+  { n:'A · Narrative Studio',  s:[4, 9, 6, 4], c:'#c8a068' },
+  { n:'B · Artist Platform',   s:[9, 3, 4, 4], c:'#7a9a80' },
+  { n:'C · Western Brand',     s:[3, 4, 9, 7], c:'#5090c8' },
+  { n:'D · Adjacent Category', s:[2, 7, 5, 8], c:'#b06a5a' }
+];
+
+(function () {
+  var ws = ['w1','w2','w3','w4'].map(function (id) { return document.getElementById(id); });
+
+  function render() {
+    var raw = ws.map(function (w) { return +w.value; });
+    raw.forEach(function (v, i) {
+      document.getElementById('w' + (i + 1) + 'Out').textContent = v;
+    });
+
+    var sum = raw.reduce(function (a, b) { return a + b; }, 0) || 1;
+    var wts = raw.map(function (v) { return v / sum; });
+
+    var scored = ARCH.map(function (a) {
+      var sc = a.s.reduce(function (t, v, i) { return t + v * wts[i]; }, 0);
+      return { n:a.n, c:a.c, sc:sc };
+    }).sort(function (x, y) { return y.sc - x.sc; });
+
+    var max = scored[0].sc || 1;
+
+    document.getElementById('results').innerHTML = scored.map(function (r, i) {
+      return '<div class="rrow">' +
+               '<span class="rrank">' + (i + 1) + '</span>' +
+               '<span class="rname">' + r.n + '</span>' +
+               '<span class="rbar"><span style="width:' + (r.sc / max * 100) + '%;background:' + r.c +
+                 ';opacity:' + (i === 0 ? '.42' : '.20') + '"></span></span>' +
+               '<span class="rscore" style="color:' + (i === 0 ? r.c : '#7a7a72') + '">' +
+                 r.sc.toFixed(1) + '</span>' +
+             '</div>';
+    }).join('');
+
+    var top = scored[0].n;
+    var gap = scored[0].sc - scored[1].sc;
+    var msg;
+
+    if (gap < 0.4) {
+      msg = 'The top two archetypes are effectively tied, which means <strong>these weights do not ' +
+            'discriminate</strong>. In practice that is a signal that the strategic priority has not ' +
+            'actually been decided — and a screen run on undecided priorities will rank whatever ' +
+            'happens to be available.';
+    } else if (top.indexOf('Narrative') > -1) {
+      msg = '<strong>' + top + '</strong> ranks first. This is the answer that follows from taking the ' +
+            'meaning problem seriously, and it is the hardest to execute: the value sits in people who ' +
+            'can leave, the culture is furthest from the acquirer\u2019s, and returns arrive years after ' +
+            'the cheque clears.';
+    } else if (top.indexOf('Artist') > -1) {
+      msg = '<strong>' + top + '</strong> ranks first, which follows from weighting the 3.1 replacement-rate ' +
+            'problem above everything else. Note the trade: this raises the number of characters without ' +
+            'improving how long any of them last. It treats the symptom identified in 3.1 rather than the ' +
+            'decay mechanism behind it.';
+    } else if (top.indexOf('Western') > -1) {
+      msg = '<strong>' + top + '</strong> ranks first — a defensible reading if the 2.3 disclosure gap ' +
+            'worries you more than the 3.1 concentration gap. It buys durability in the fastest-growing ' +
+            'and least-proven market, but it adds no characters and does nothing about decay.';
+    } else {
+      msg = '<strong>' + top + '</strong> ranks first, which is what happens when integration risk is ' +
+            'weighted heavily. It is the safest archetype and the least transformative: it raises revenue ' +
+            'per character while leaving the concentration in 3.1 exactly where it was.';
+    }
+
+    document.getElementById('mRead').innerHTML = msg;
+  }
+
+  ws.forEach(function (w) { w.addEventListener('input', render); });
+  render();
+})();
+</script>
+
+</body>
+</html>

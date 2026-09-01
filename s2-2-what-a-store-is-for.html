@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2.2 — What a Store Is Actually For</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,900;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --ink:#f0ede6;
+  --bg:#0e0e0d;
+  --blue:#5090c8;
+  --dim:#55554f;
+  --faint:#33332f;
+  --line:#1e1e1c;
+  --warm:#c8a068;
+  --rust:#b06a5a;
+}
+
+body { background:var(--bg); color:var(--ink); font-family:'DM Mono',monospace; min-height:100vh; }
+
+.topbar {
+  position:sticky; top:0; z-index:60;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1rem 3rem; background:rgba(14,14,13,.94); backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+}
+.back {
+  font-size:9px; letter-spacing:.15em; text-transform:uppercase;
+  color:var(--dim); text-decoration:none;
+  display:inline-flex; align-items:center; gap:.5rem; transition:color .3s;
+}
+.back:hover { color:var(--ink); }
+.back .arw { display:inline-block; transition:transform .3s; }
+.back:hover .arw { transform:translateX(-3px); }
+.crumb { font-size:9px; letter-spacing:.15em; color:var(--faint); text-transform:uppercase; }
+
+.wrap { padding:0 3rem; }
+section { padding:5rem 0; border-bottom:1px solid #161614; }
+section:last-of-type { border-bottom:none; }
+
+.eyebrow { font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--faint); margin-bottom:1.4rem; }
+h1 { font-family:'Playfair Display',serif; font-size:clamp(2rem,4.8vw,3.8rem); font-weight:900; line-height:1.05; letter-spacing:-.01em; }
+h2 { font-family:'Playfair Display',serif; font-size:clamp(1.3rem,2.6vw,2rem); font-weight:900; line-height:1.2; margin-bottom:1.6rem; }
+.lede { font-style:italic; font-size:13px; color:var(--dim); margin-top:1.5rem; letter-spacing:.02em; }
+p.body { font-size:12px; line-height:2.1; color:#8a8a80; max-width:660px; margin-bottom:1.4rem; }
+p.body strong { color:var(--ink); font-weight:400; }
+.note { font-size:10px; line-height:1.9; color:#4a4a44; margin-top:1.2rem; max-width:660px; }
+
+/* chart */
+.chart-frame { margin-top:2.5rem; border:1px solid var(--line); padding:2rem 1.5rem 1.2rem; }
+.chart-head { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:2rem; }
+.chart-title { font-size:10px; letter-spacing:.15em; text-transform:uppercase; color:var(--dim); }
+.toggle-group { display:flex; border:1px solid var(--line); }
+.toggle-group button {
+  background:transparent; border:none; color:var(--faint);
+  font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.1em;
+  text-transform:uppercase; padding:.5rem .9rem; cursor:pointer;
+  transition:color .3s, background .3s;
+}
+.toggle-group button + button { border-left:1px solid var(--line); }
+.toggle-group button.on { color:var(--ink); background:#1a1a18; }
+svg { width:100%; height:auto; display:block; overflow:visible; }
+.axis-line { stroke:#262623; stroke-width:1; }
+.grid-line { stroke:#1a1a18; stroke-width:1; }
+.axis-text { fill:#44443f; font-family:'DM Mono',monospace; font-size:9px; }
+.readout { margin-top:1.5rem; padding-top:1.2rem; border-top:1px solid var(--line); font-size:11px; line-height:1.95; color:#8a8a80; min-height:76px; }
+.readout strong { color:var(--ink); font-weight:400; }
+
+/* jobs */
+.jobs { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1px; background:var(--line); margin-top:2.5rem; }
+.job { background:var(--bg); padding:1.8rem 1.35rem; transition:background .4s; border-top:2px solid transparent; }
+.job:hover { background:#141412; }
+.job.a { border-top-color:var(--blue); }
+.job.b { border-top-color:var(--warm); }
+.job .jr { font-size:8px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); margin-bottom:.9rem; }
+.job .jt { font-family:'Playfair Display',serif; font-size:1rem; font-weight:900; line-height:1.25; margin-bottom:.7rem; }
+.job .jm { font-size:9px; color:var(--blue); margin-bottom:.75rem; letter-spacing:.03em; }
+.job.b .jm { color:var(--warm); }
+.job .jb { font-size:10px; line-height:1.9; color:#6a6a62; }
+
+/* network table */
+.net { margin-top:2.5rem; border-top:1px solid var(--line); }
+.net-row {
+  display:flex; align-items:baseline; gap:1.4rem;
+  padding:1.05rem 0; border-bottom:1px solid #161614;
+  transition:background .35s;
+}
+.net-row:hover { background:#121210; }
+.net-row.head { color:var(--faint); font-size:9px; letter-spacing:.14em; text-transform:uppercase; }
+.net-c1 { flex:1.6; font-size:11px; color:#8a8a80; }
+.net-c2, .net-c3, .net-c4 { flex:1; font-size:11px; text-align:right; color:#8a8a80; }
+.net-row:not(.head) .net-c2,
+.net-row:not(.head) .net-c3 { font-family:'Playfair Display',serif; font-size:1rem; font-weight:900; color:var(--ink); }
+.net-row .net-c4 { color:var(--dim); font-size:10px; }
+
+/* stats */
+.stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1px; background:var(--line); margin-top:2.5rem; }
+.stat { background:var(--bg); padding:1.7rem 1.3rem; }
+.stat .sv { font-family:'Playfair Display',serif; font-size:1.75rem; font-weight:900; line-height:1.1; }
+.stat .sv.blue { color:var(--blue); }
+.stat .sv.warn { color:var(--rust); }
+.stat .sl { font-size:9.5px; line-height:1.8; color:#6a6a62; margin-top:.85rem; }
+
+/* verdict */
+.verdict { border-left:2px solid var(--blue); padding:1.6rem 0 1.6rem 1.6rem; margin-top:2.5rem; max-width:700px; }
+.verdict .vq { font-family:'Playfair Display',serif; font-size:clamp(1.05rem,2vw,1.45rem); font-weight:900; line-height:1.35; margin-bottom:1rem; }
+.verdict p { font-size:11.5px; line-height:2; color:#8a8a80; }
+
+.next {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:2.5rem 3rem; border-top:1px solid var(--line);
+  text-decoration:none; color:var(--ink); transition:background .4s, padding-left .5s;
+}
+.next:hover { background:#131311; padding-left:3.9rem; }
+.next .nlabel { font-size:9px; letter-spacing:.15em; text-transform:uppercase; color:var(--faint); margin-bottom:.6rem; }
+.next .ntitle { font-family:'Playfair Display',serif; font-size:1.25rem; font-weight:900; }
+.next .narw { font-size:9px; letter-spacing:.15em; text-transform:uppercase; }
+
+.footnote { padding:2.5rem 3rem 4rem; font-size:9px; color:#2e2e2b; line-height:2; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="s2-arrive.html"><span class="arw">&larr;</span> Arrive, Belong, and Repeat.</a>
+  <span class="crumb">2.2</span>
+</div>
+
+<div class="wrap">
+
+  <section>
+    <div class="eyebrow">Chapter 2.2</div>
+    <h1>What a Store<br>Is Actually For</h1>
+    <div class="lede">One store in Asia-Pacific earns roughly what two in China do.</div>
+  </section>
+
+  <!-- ══ THE METRIC ══ -->
+  <section>
+    <h2>The obvious metric gets the ranking wrong.</h2>
+    <p class="body">
+      Divide regional revenue by regional store count and the Americas looks like the most
+      productive network in the group. It is also the least accurate thing you can say about
+      it, because <strong>64% of Americas revenue never went through a store at all</strong>.
+      Strip the online channel out and the ranking inverts.
+    </p>
+
+    <div class="chart-frame">
+      <div class="chart-head">
+        <span class="chart-title">Revenue per store &nbsp;&middot;&nbsp; RMB m &nbsp;&middot;&nbsp; FY2025</span>
+        <div class="toggle-group" id="toggles">
+          <button class="on" data-mode="naive">Total revenue &divide; stores</button>
+          <button data-mode="offline">Offline revenue &divide; stores</button>
+        </div>
+      </div>
+      <svg viewBox="0 0 760 290" id="chart" role="img" aria-label="Revenue per store by region"></svg>
+      <div class="readout" id="readout"></div>
+    </div>
+
+    <p class="note">
+      A further caveat cuts the same way. China's offline revenue is spread across 445 stores
+      <em>and</em> 2,396 robot shops, but is attributed here to stores alone. The true
+      per-store figure for China is therefore lower than shown &mdash; which widens the gap
+      rather than narrowing it.
+    </p>
+  </section>
+
+  <!-- ══ FOUR JOBS ══ -->
+  <section>
+    <h2>The same shop is doing four different jobs.</h2>
+    <p class="body">
+      Productivity gaps of this size usually mean the asset is not comparable across markets.
+      That is the case here. A Pop Mart store has a different function in each region, and
+      each function should be underwritten against a different return.
+    </p>
+
+    <div class="jobs">
+      <div class="job a">
+        <div class="jr">China</div>
+        <div class="jt">Coverage</div>
+        <div class="jm">445 stores &middot; 2,396 robot shops</div>
+        <div class="jb">A dense network built to be near everyone. Individual productivity is low by design; the robot shops exist precisely to add reach at minimal fixed cost. This network is optimised for frequency, not for footfall value.</div>
+      </div>
+      <div class="job a">
+        <div class="jr">Asia-Pacific</div>
+        <div class="jt">Conversion</div>
+        <div class="jm">85 stores &middot; travel retail</div>
+        <div class="jb">Sited at tourist destinations and airports, where the buyer is already in a purchasing frame of mind and looking for something to carry home. The highest offline productivity in the group, and the closest thing to a repeatable overseas model.</div>
+      </div>
+      <div class="job b">
+        <div class="jr">The Americas</div>
+        <div class="jt">Showroom</div>
+        <div class="jm">64 stores &middot; 64% of revenue online</div>
+        <div class="jb">The store validates a brand that most customers meet on a phone. Its job is partly to make the online purchase feel legitimate &mdash; a function that generates revenue somewhere other than the till it sits behind.</div>
+      </div>
+      <div class="job b">
+        <div class="jr">Europe</div>
+        <div class="jt">Media</div>
+        <div class="jm">36 stores &middot; landmark sites</div>
+        <div class="jb">Cambridge, Copenhagen, Rotterdam, Lyon, Barcelona. Positional real estate bought for visibility. Judged on revenue per square metre this is the weakest network in the group; judged as a brand-building line item it may be the cheapest.</div>
+      </div>
+    </div>
+
+    <p class="note">
+      Two of these four jobs produce revenue directly. The other two produce it somewhere
+      else on the P&amp;L, or not yet at all &mdash; which is why a single store-opening
+      target is a poor way to steer this business.
+    </p>
+  </section>
+
+  <!-- ══ THE NETWORK ══ -->
+  <section>
+    <h2>Two networks that look alike on a slide.</h2>
+    <p class="body">
+      At the end of 2025 the group operated 630 stores across twenty countries and 2,637
+      robot shops. Nearly every robot shop is in China. The overseas footprint is almost
+      entirely full stores &mdash; a structurally more expensive, higher-productivity, and
+      considerably less flexible network.
+    </p>
+
+    <div class="net">
+      <div class="net-row head">
+        <span class="net-c1">Region</span>
+        <span class="net-c2">Stores</span>
+        <span class="net-c3">Robot shops</span>
+        <span class="net-c4">Net added in 2025</span>
+      </div>
+      <div class="net-row">
+        <span class="net-c1">China</span>
+        <span class="net-c2">445</span>
+        <span class="net-c3">2,396</span>
+        <span class="net-c4">+14 stores</span>
+      </div>
+      <div class="net-row">
+        <span class="net-c1">Asia-Pacific</span>
+        <span class="net-c2">85</span>
+        <span class="net-c3" style="font-family:'DM Mono',monospace;font-size:11px;font-weight:400;color:#55554f">&mdash;</span>
+        <span class="net-c4">+31 stores</span>
+      </div>
+      <div class="net-row">
+        <span class="net-c1">The Americas</span>
+        <span class="net-c2">64</span>
+        <span class="net-c3" style="font-family:'DM Mono',monospace;font-size:11px;font-weight:400;color:#55554f">&mdash;</span>
+        <span class="net-c4">+42 stores</span>
+      </div>
+      <div class="net-row">
+        <span class="net-c1">Europe &amp; other</span>
+        <span class="net-c2">36</span>
+        <span class="net-c3" style="font-family:'DM Mono',monospace;font-size:11px;font-weight:400;color:#55554f">&mdash;</span>
+        <span class="net-c4">+22 stores</span>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="sv blue">241</div>
+        <div class="sl">Robot shops outside China, against 2,396 inside it. The low-cost coverage format has barely been exported.</div>
+      </div>
+      <div class="stat">
+        <div class="sv">+14</div>
+        <div class="sl">Net new stores in China during 2025, against +95 across the three overseas regions. The home network is effectively built out.</div>
+      </div>
+      <div class="stat">
+        <div class="sv blue">RMB 3.42bn</div>
+        <div class="sl">China mini-programme revenue &mdash; a digital channel with no physical footprint, larger than all of Europe.</div>
+      </div>
+      <div class="stat">
+        <div class="sv warn">4</div>
+        <div class="sl">Distinct store functions being managed under one expansion programme.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ VERDICT ══ -->
+  <section>
+    <div class="eyebrow">So what</div>
+    <div class="verdict">
+      <div class="vq">A store is not distribution here. It is whichever scarce thing the market is missing.</div>
+      <p>
+        In China the scarce thing was proximity, so the network optimised for reach and
+        accepted low unit productivity. In Asia-Pacific the scarce thing is the moment of
+        intent, so the network sits in airports and tourist districts and earns roughly twice
+        per site. In the Americas the scarce thing is legitimacy for a brand discovered
+        through a feed. In Europe it is simply awareness.
+      </p>
+      <p style="margin-top:1.2rem;">
+        Managing all four under a single store-opening target and a single revenue-per-store
+        benchmark is how a business ends up expanding the wrong format in the wrong market.
+        The 2025 numbers do not show that happening. They do show
+        <strong>four networks being built at once, with only one of them fully understood</strong>.
+      </p>
+      <p style="margin-top:1.2rem;">
+        Which leaves the harder question untouched. Store productivity measures how well a
+        market converts. It says nothing about whether anyone comes back. For China that
+        answer is disclosed in detail. For every other market it is not disclosed at all
+        &mdash; which is <strong>2.3</strong>.
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<a class="next" href="s2-3-the-number-nobody-reports.html">
+  <div>
+    <div class="nlabel">Next &nbsp;&middot;&nbsp; 2.3</div>
+    <div class="ntitle">The Number Nobody Reports</div>
+  </div>
+  <span class="narw">Enter &rarr;</span>
+</a>
+
+<div class="footnote">
+  Store counts at 31 December 2025: China 445 stores and 2,396 robot shops; Asia-Pacific 85;
+  the Americas 64; Europe and other 36. Group total 630 stores across 20 countries and 2,637
+  robot shops, a net addition of 109 stores and 165 robot shops during the year. Regional
+  revenue FY2025: China RMB 20.851bn, Asia-Pacific RMB 8.011bn, the Americas RMB 6.806bn,
+  Europe and other RMB 1.451bn. China online revenue RMB 8.52bn, of which the mini-programme
+  RMB 3.42bn. Americas online share of regional revenue 64.0%, as disclosed. Asia-Pacific and
+  Europe offline shares are derived from H1 2025 interim disclosure and applied to the full
+  year; offline revenue per store for those two regions is therefore an estimate. China
+  offline revenue is attributed to stores only and excludes any allocation to robot shops.
+</div>
+
+<script>
+var REGIONS = ['China', 'Asia-Pacific', 'The Americas', 'Europe & other'];
+
+var MODES = {
+  naive: {
+    values: [46.9, 94.2, 106.3, 40.3],
+    max: 120,
+    label: 'Total revenue ÷ stores',
+    text: 'On the unadjusted measure the Americas leads at <strong>RMB 106.3m per store</strong>, ahead of Asia-Pacific at 94.2m. This is the number a store-count slide produces, and it is misleading in both directions: it credits Americas stores with revenue earned by an app, and it charges Chinese stores with revenue earned by a mini-programme.'
+  },
+  offline: {
+    values: [27.7, 55.6, 38.3, 25.8],
+    max: 120,
+    label: 'Offline revenue ÷ stores',
+    text: 'Attributing only offline revenue to physical sites reverses the ranking. <strong>Asia-Pacific leads at roughly RMB 55.6m per store</strong> — about twice China\'s 27.7m and 45% above the Americas. The travel-retail network, sited where intent is highest, is the most productive physical estate the company operates. Europe, built for visibility rather than volume, sits last.'
+  }
+};
+
+(function () {
+  var svg = document.getElementById('chart');
+  var L = 130, R = 740, T = 30, B = 230;
+  var mode = 'naive';
+
+  function yAt(i) { return T + (B - T) * (i + .5) / REGIONS.length; }
+  function xAt(v, max) { return L + (R - L) * (v / max); }
+
+  function render() {
+    var m = MODES[mode];
+    var h = '';
+
+    [0, 30, 60, 90, 120].forEach(function (v) {
+      h += '<line class="grid-line" x1="' + xAt(v, m.max) + '" y1="' + T + '" x2="' + xAt(v, m.max) + '" y2="' + B + '"></line>' +
+           '<text class="axis-text" x="' + xAt(v, m.max) + '" y="' + (B + 20) + '" text-anchor="middle">' + v + '</text>';
+    });
+
+    var best = Math.max.apply(null, m.values);
+    var bh = 26;
+
+    m.values.forEach(function (v, i) {
+      var y = yAt(i);
+      var lead = (v === best);
+      var c = lead ? '#c8a068' : '#5090c8';
+      h += '<text class="axis-text" x="' + (L - 14) + '" y="' + (y + 4) + '" text-anchor="end" fill="' +
+           (lead ? '#c8a068' : '#6a6a62') + '">' + REGIONS[i] + '</text>' +
+           '<rect x="' + L + '" y="' + (y - bh / 2) + '" width="' + (xAt(v, m.max) - L) + '" height="' + bh +
+           '" fill="' + c + '" opacity="' + (lead ? '.34' : '.20') + '"></rect>' +
+           '<line x1="' + xAt(v, m.max) + '" y1="' + (y - bh / 2) + '" x2="' + xAt(v, m.max) + '" y2="' + (y + bh / 2) +
+           '" stroke="' + c + '" stroke-width="2"></line>' +
+           '<text class="axis-text" x="' + (xAt(v, m.max) + 10) + '" y="' + (y + 4) + '" fill="' + c + '">' +
+           v.toFixed(1) + '</text>';
+    });
+
+    h += '<line class="axis-line" x1="' + L + '" y1="' + B + '" x2="' + R + '" y2="' + B + '"></line>';
+    svg.innerHTML = h;
+    document.getElementById('readout').innerHTML = m.text;
+  }
+
+  document.querySelectorAll('#toggles button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('#toggles button').forEach(function (b) { b.classList.remove('on'); });
+      btn.classList.add('on');
+      mode = btn.getAttribute('data-mode');
+      render();
+    });
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2.3 — The Number Nobody Reports</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,900;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --ink:#f0ede6;
+  --bg:#0e0e0d;
+  --blue:#5090c8;
+  --dim:#55554f;
+  --faint:#33332f;
+  --line:#1e1e1c;
+  --warm:#c8a068;
+  --rust:#b06a5a;
+}
+
+body { background:var(--bg); color:var(--ink); font-family:'DM Mono',monospace; min-height:100vh; }
+
+.topbar {
+  position:sticky; top:0; z-index:60;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1rem 3rem; background:rgba(14,14,13,.94); backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+}
+.back {
+  font-size:9px; letter-spacing:.15em; text-transform:uppercase;
+  color:var(--dim); text-decoration:none;
+  display:inline-flex; align-items:center; gap:.5rem; transition:color .3s;
+}
+.back:hover { color:var(--ink); }
+.back .arw { display:inline-block; transition:transform .3s; }
+.back:hover .arw { transform:translateX(-3px); }
+.crumb { font-size:9px; letter-spacing:.15em; color:var(--faint); text-transform:uppercase; }
+
+.wrap { padding:0 3rem; }
+section { padding:5rem 0; border-bottom:1px solid #161614; }
+section:last-of-type { border-bottom:none; }
+
+.eyebrow { font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--faint); margin-bottom:1.4rem; }
+h1 { font-family:'Playfair Display',serif; font-size:clamp(2rem,4.8vw,3.8rem); font-weight:900; line-height:1.05; letter-spacing:-.01em; }
+h2 { font-family:'Playfair Display',serif; font-size:clamp(1.3rem,2.6vw,2rem); font-weight:900; line-height:1.2; margin-bottom:1.6rem; }
+.lede { font-style:italic; font-size:13px; color:var(--dim); margin-top:1.5rem; letter-spacing:.02em; }
+p.body { font-size:12px; line-height:2.1; color:#8a8a80; max-width:660px; margin-bottom:1.4rem; }
+p.body strong { color:var(--ink); font-weight:400; }
+.note { font-size:10px; line-height:1.9; color:#4a4a44; margin-top:1.2rem; max-width:660px; }
+
+/* stats */
+.stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1px; background:var(--line); margin-top:2.5rem; }
+.stat { background:var(--bg); padding:1.7rem 1.3rem; }
+.stat .sv { font-family:'Playfair Display',serif; font-size:1.75rem; font-weight:900; line-height:1.1; }
+.stat .sv.blue { color:var(--blue); }
+.stat .sl { font-size:9.5px; line-height:1.8; color:#6a6a62; margin-top:.85rem; }
+
+/* chart */
+.chart-frame { margin-top:2.5rem; border:1px solid var(--line); padding:2rem 1.5rem 1.2rem; }
+.chart-head { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:2rem; }
+.chart-title { font-size:10px; letter-spacing:.15em; text-transform:uppercase; color:var(--dim); }
+svg { width:100%; height:auto; display:block; overflow:visible; }
+.axis-line { stroke:#262623; stroke-width:1; }
+.grid-line { stroke:#1a1a18; stroke-width:1; }
+.axis-text { fill:#44443f; font-family:'DM Mono',monospace; font-size:9px; }
+.readout { margin-top:1.5rem; padding-top:1.2rem; border-top:1px solid var(--line); font-size:11px; line-height:1.95; color:#8a8a80; }
+.readout strong { color:var(--ink); font-weight:400; }
+
+/* disclosure map */
+.dmap { margin-top:2.5rem; border:1px solid var(--line); overflow-x:auto; }
+.dmap table { width:100%; border-collapse:collapse; min-width:640px; }
+.dmap th, .dmap td {
+  padding:1rem 1.1rem; text-align:left;
+  border-bottom:1px solid #161614; border-right:1px solid #161614;
+  font-size:10px;
+}
+.dmap th {
+  font-size:9px; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--faint); font-weight:400;
+}
+.dmap th:first-child { width:36%; }
+.dmap td:first-child { color:#8a8a80; font-size:11px; }
+.dmap tr:last-child td { border-bottom:none; }
+.dmap th:last-child, .dmap td:last-child { border-right:none; }
+.dmap tbody tr { transition:background .35s; }
+.dmap tbody tr:hover { background:#121210; }
+.yes { color:var(--blue); font-family:'Playfair Display',serif; font-size:.95rem; font-weight:900; }
+.no  { color:var(--rust); letter-spacing:.1em; }
+
+/* model */
+.model { margin-top:2.5rem; border:1px solid var(--line); padding:2rem 1.5rem 1.4rem; }
+.model-head { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:1.8rem; }
+.model-title { font-size:10px; letter-spacing:.15em; text-transform:uppercase; color:var(--dim); }
+.model-flag { font-size:8px; letter-spacing:.14em; text-transform:uppercase; color:var(--warm); border:1px solid rgba(200,160,104,.32); padding:.25rem .55rem; }
+.ctrl label { display:block; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); margin-bottom:.8rem; }
+.ctrl .cval { color:var(--ink); }
+.ctrl input[type=range] { width:100%; accent-color:#5090c8; }
+.ctrl .chint { font-size:9px; color:#3e3e3a; margin-top:.6rem; line-height:1.7; }
+.marks { display:flex; justify-content:space-between; margin-top:.5rem; font-size:8px; color:#3a3a36; letter-spacing:.06em; }
+
+.mgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1.4rem; margin-top:2rem; padding-top:1.6rem; border-top:1px solid var(--line); }
+.mcell .mv { font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:900; line-height:1.1; }
+.mcell .mv.hero { color:var(--blue); font-size:2rem; }
+.mcell .mv.alarm { color:var(--rust); }
+.mcell .ml { font-size:9px; color:#5a5a54; margin-top:.6rem; line-height:1.7; }
+.model-read { margin-top:1.6rem; padding-top:1.3rem; border-top:1px solid var(--line); font-size:11px; line-height:1.95; color:#8a8a80; min-height:76px; }
+.model-read strong { color:var(--ink); font-weight:400; }
+
+/* verdict */
+.verdict { border-left:2px solid var(--rust); padding:1.6rem 0 1.6rem 1.6rem; margin-top:2.5rem; max-width:700px; }
+.verdict .vq { font-family:'Playfair Display',serif; font-size:clamp(1.05rem,2vw,1.45rem); font-weight:900; line-height:1.35; margin-bottom:1rem; }
+.verdict p { font-size:11.5px; line-height:2; color:#8a8a80; }
+
+.next {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:2.5rem 3rem; border-top:1px solid var(--line);
+  text-decoration:none; color:var(--ink); transition:background .4s, padding-left .5s;
+}
+.next:hover { background:#131311; padding-left:3.9rem; }
+.next .nlabel { font-size:9px; letter-spacing:.15em; text-transform:uppercase; color:var(--faint); margin-bottom:.6rem; }
+.next .ntitle { font-family:'Playfair Display',serif; font-size:1.25rem; font-weight:900; }
+.next .narw { font-size:9px; letter-spacing:.15em; text-transform:uppercase; }
+
+.footnote { padding:2.5rem 3rem 4rem; font-size:9px; color:#2e2e2b; line-height:2; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="s2-arrive.html"><span class="arw">&larr;</span> Arrive, Belong, and Repeat.</a>
+  <span class="crumb">2.3</span>
+</div>
+
+<div class="wrap">
+
+  <section>
+    <div class="eyebrow">Chapter 2.3</div>
+    <h1>The Number<br>Nobody Reports</h1>
+    <div class="lede">China's repeat rate is disclosed. Nowhere else's is.</div>
+  </section>
+
+  <!-- ══ WHAT CHINA SHOWS ══ -->
+  <section>
+    <h2>In China, the habit is measurable &mdash; and it is real.</h2>
+    <p class="body">
+      The mainland membership programme is the most convincing asset in the business, and the
+      company reports it in detail. At the end of 2025 there were 72.58 million registered
+      members, up 26.5 million in a year. Members accounted for
+      <strong>93.7% of sales</strong>. And the repeat purchase rate reached
+      <strong>55.7%</strong> &mdash; up from 50% two years earlier, while the customer base
+      more than doubled.
+    </p>
+    <p class="body">
+      That last combination is the difficult one to achieve. Repeat rates usually fall when a
+      base expands quickly, because new cohorts dilute the loyal core. China's went the other
+      way.
+    </p>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="sv blue">72.58m</div>
+        <div class="sl">Registered members in mainland China at end-2025, from 46.08m a year earlier.</div>
+      </div>
+      <div class="stat">
+        <div class="sv blue">93.7%</div>
+        <div class="sl">Share of China sales made to registered members.</div>
+      </div>
+      <div class="stat">
+        <div class="sv blue">55.7%</div>
+        <div class="sl">Member repeat purchase rate, up from 50.8% at the half year and 50% in 2023.</div>
+      </div>
+      <div class="stat">
+        <div class="sv">+26.5m</div>
+        <div class="sl">Net new members added during 2025 &mdash; and the repeat rate still rose.</div>
+      </div>
+    </div>
+
+    <div class="chart-frame">
+      <div class="chart-head">
+        <span class="chart-title">China member repeat purchase rate &nbsp;&middot;&nbsp; 2023&ndash;2025</span>
+      </div>
+      <svg viewBox="0 0 760 260" id="repChart" role="img" aria-label="China repeat purchase rate"></svg>
+      <div class="readout">
+        This is what a durable consumer franchise looks like on a page. Rising repeat purchase
+        against a rapidly growing base means the cohorts joining in 2024 and 2025 are behaving
+        at least as well as the ones already there. <strong>The China business has proved
+        it.</strong>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ THE MAP ══ -->
+  <section>
+    <h2>Now the same table, for the other 43.8% of revenue.</h2>
+    <p class="body">
+      Overseas markets contributed RMB 16.27bn in 2025. Not one of the metrics above is
+      reported for any of them.
+    </p>
+
+    <div class="dmap">
+      <table>
+        <thead>
+          <tr>
+            <th>Disclosed metric</th>
+            <th>China</th>
+            <th>Asia-Pacific</th>
+            <th>The Americas</th>
+            <th>Europe &amp; other</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Revenue</td>
+            <td class="yes">&#10003;</td>
+            <td class="yes">&#10003;</td>
+            <td class="yes">&#10003;</td>
+            <td class="yes">&#10003;</td>
+          </tr>
+          <tr>
+            <td>Store count</td>
+            <td class="yes">&#10003;</td>
+            <td class="yes">&#10003;</td>
+            <td class="yes">&#10003;</td>
+            <td class="yes">&#10003;</td>
+          </tr>
+          <tr>
+            <td>Online / offline split</td>
+            <td class="yes">&#10003;</td>
+            <td class="yes">&#10003;</td>
+            <td class="yes">&#10003;</td>
+            <td class="yes">&#10003;</td>
+          </tr>
+          <tr>
+            <td>Registered members</td>
+            <td class="yes">&#10003;</td>
+            <td class="no">not reported</td>
+            <td class="no">not reported</td>
+            <td class="no">not reported</td>
+          </tr>
+          <tr>
+            <td>Member share of sales</td>
+            <td class="yes">&#10003;</td>
+            <td class="no">not reported</td>
+            <td class="no">not reported</td>
+            <td class="no">not reported</td>
+          </tr>
+          <tr>
+            <td>Repeat purchase rate</td>
+            <td class="yes">&#10003;</td>
+            <td class="no">not reported</td>
+            <td class="no">not reported</td>
+            <td class="no">not reported</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="body" style="margin-top:2.5rem;">
+      There is nothing improper about this. The mainland programme has been running for over
+      a decade; the overseas business is roughly two years old and was reorganised onto a
+      four-region structure only in 2025. Cohort data takes time to become meaningful, and
+      publishing a repeat rate built on six months of customers would be worse than
+      publishing none.
+    </p>
+    <p class="body">
+      But the absence is still information. <strong>The entire overseas thesis rests on the
+      assumption that these markets will eventually behave like China</strong> &mdash; and
+      the single metric that would demonstrate it is the one that does not exist yet.
+    </p>
+
+    <p class="note">
+      The 2.1 finding sharpens this. In the Americas, 64% of revenue arrived online, much of
+      it through feeds and a first-party app that launched recently. Feed-acquired customers
+      are, by construction, disproportionately first-time buyers in the year the feed
+      discovers you.
+    </p>
+  </section>
+
+  <!-- ══ MODEL ══ -->
+  <section>
+    <h2>How much of 2026 has to be bought again.</h2>
+    <p class="body">
+      Since the number is not disclosed, the useful exercise is to size what it would need to
+      be. Management has guided to group revenue growth of not less than 20% in 2026. Assume
+      China and overseas both grow at that rate. Then move the dial below through the range
+      of plausible overseas repeat rates and watch what happens to the amount of revenue that
+      must come from customers who have never bought before.
+    </p>
+
+    <div class="model">
+      <div class="model-head">
+        <span class="model-title">Overseas revenue bridge to 2026</span>
+        <span class="model-flag">Sensitivity, not forecast</span>
+      </div>
+
+      <div class="ctrl">
+        <label>Assumed overseas repeat purchase rate &mdash; <span class="cval" id="rOut">30</span>%</label>
+        <input type="range" id="rSlider" min="0" max="60" value="30" step="1">
+        <div class="marks">
+          <span>0% &mdash; every buyer is new</span>
+          <span>55.7% &mdash; China's disclosed rate</span>
+        </div>
+        <div class="chint">2025 overseas revenue: RMB 16.27bn. 2026 target on 20% group growth: RMB 19.52bn.</div>
+      </div>
+
+      <div class="mgrid">
+        <div class="mcell">
+          <div class="mv" id="vRetained">&mdash;</div>
+          <div class="ml">Revenue carried by returning customers, RMB bn</div>
+        </div>
+        <div class="mcell">
+          <div class="mv hero" id="vNew">&mdash;</div>
+          <div class="ml">Revenue that must come from first-time buyers, RMB bn</div>
+        </div>
+        <div class="mcell">
+          <div class="mv" id="vRatio">&mdash;</div>
+          <div class="ml">New-customer revenue required, as a share of all 2025 overseas revenue</div>
+        </div>
+      </div>
+
+      <div class="model-read" id="mRead"></div>
+    </div>
+
+    <p class="note">
+      A deliberately crude bridge: it treats the repeat rate as the share of prior-year
+      revenue that recurs, and holds spend per returning customer flat. Real cohort behaviour
+      is more complex. The point is the order of magnitude, not the decimal.
+    </p>
+  </section>
+
+  <!-- ══ VERDICT ══ -->
+  <section>
+    <div class="eyebrow">So what</div>
+    <div class="verdict">
+      <div class="vq">Arrive and Belong are proven. Repeat is still an assumption.</div>
+      <p>
+        This section is named for three things a consumer has to do before a brand becomes a
+        franchise. The 2025 disclosures demonstrate the first two conclusively: they arrived
+        in enormous numbers, and in China at least, they clearly belong &mdash; 93.7% of sales
+        to members, with repeat purchase rising through a doubling of the base.
+      </p>
+      <p style="margin-top:1.2rem;">
+        The third is unproven outside China, and it is the one that determines whether 2025
+        was a step-change or a very large first purchase. An analyst cannot resolve it from
+        public information. What an analyst can do is state plainly which parts of the
+        valuation depend on it, and refuse to let a group-level growth rate stand in for a
+        cohort metric it does not contain.
+      </p>
+      <p style="margin-top:1.2rem;">
+        The practical response is not to assume the worst. It is to stop treating the four
+        regions as one business with one set of economics &mdash; because on everything that
+        <em>is</em> disclosed, they already are not. That is <strong>2.4</strong>.
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<a class="next" href="s2-4-three-playbooks.html">
+  <div>
+    <div class="nlabel">Next &nbsp;&middot;&nbsp; 2.4</div>
+    <div class="ntitle">One Product, Three Businesses</div>
+  </div>
+  <span class="narw">Enter &rarr;</span>
+</a>
+
+<div class="footnote">
+  Membership figures are disclosed for mainland China only. Registered members 72.58m at 31
+  December 2025 against 46.08m at 31 December 2024; 59.12m at 30 June 2025. Member share of
+  sales 93.7% in FY2025, 91.2% in H1 2025, 92.1% in FY2023. Member repeat purchase rate 55.7%
+  in FY2025, 50.8% in H1 2025, 50% in FY2023. Overseas revenue RMB 16.268bn in FY2025 against
+  RMB 4.151bn in FY2024, representing 43.8% of group revenue. FY2026 guidance of group revenue
+  growth of not less than 20% is as stated by management at the FY2025 results presentation.
+  The overseas revenue bridge is an illustrative sensitivity and uses no company cohort data,
+  none of which is published.
+</div>
+
+<script>
+/* ══ CHINA REPEAT RATE ══ */
+(function () {
+  var svg = document.getElementById('repChart');
+  var L = 80, R = 740, T = 30, B = 200;
+  var data = [
+    { p:'FY2023', v:50.0 },
+    { p:'H1 2025', v:50.8 },
+    { p:'FY2025', v:55.7 }
+  ];
+  var MIN = 40, MAX = 60;
+
+  function xAt(i) { return L + (R - L) * (i + .5) / data.length; }
+  function yAt(v) { return B - (B - T) * ((v - MIN) / (MAX - MIN)); }
+
+  var h = '';
+  [40, 45, 50, 55, 60].forEach(function (v) {
+    h += '<line class="grid-line" x1="' + L + '" y1="' + yAt(v) + '" x2="' + R + '" y2="' + yAt(v) + '"></line>' +
+         '<text class="axis-text" x="' + (L - 12) + '" y="' + (yAt(v) + 3) + '" text-anchor="end">' + v + '%</text>';
+  });
+
+  var pts = data.map(function (d, i) { return xAt(i) + ' ' + yAt(d.v); });
+  h += '<polyline points="' + pts.join(' ') + '" fill="none" stroke="#5090c8" stroke-width="2"></polyline>';
+
+  data.forEach(function (d, i) {
+    h += '<circle cx="' + xAt(i) + '" cy="' + yAt(d.v) + '" r="5" fill="#5090c8"></circle>' +
+         '<text class="axis-text" x="' + xAt(i) + '" y="' + (yAt(d.v) - 16) + '" text-anchor="middle" fill="#5090c8">' +
+         d.v.toFixed(1) + '%</text>' +
+         '<text class="axis-text" x="' + xAt(i) + '" y="' + (B + 20) + '" text-anchor="middle">' + d.p + '</text>';
+  });
+
+  h += '<line class="axis-line" x1="' + L + '" y1="' + B + '" x2="' + R + '" y2="' + B + '"></line>';
+  svg.innerHTML = h;
+})();
+
+/* ══ OVERSEAS BRIDGE ══ */
+(function () {
+  var BASE_2025 = 16.27;   /* RMB bn overseas revenue */
+  var TARGET_26 = 19.52;   /* +20% */
+
+  var s = document.getElementById('rSlider');
+
+  function render() {
+    var r = +s.value / 100;
+    document.getElementById('rOut').textContent = s.value;
+
+    var retained = BASE_2025 * r;
+    var needNew  = TARGET_26 - retained;
+    var ratio    = needNew / BASE_2025;
+
+    document.getElementById('vRetained').textContent = retained.toFixed(2);
+    document.getElementById('vNew').textContent      = needNew.toFixed(2);
+    document.getElementById('vRatio').textContent    = Math.round(ratio * 100) + '%';
+
+    var newEl = document.getElementById('vNew');
+    newEl.classList.toggle('alarm', ratio > 1);
+
+    var msg;
+    if (r >= 0.5) {
+      msg = 'At a China-like repeat rate, returning customers alone carry <strong>RMB ' +
+            retained.toFixed(2) + 'bn</strong> into 2026. The business needs to find ' +
+            'first-time buyers worth ' + Math.round(ratio * 100) +
+            '% of last year&rsquo;s overseas revenue — demanding, but plainly achievable at the current pace of store openings and app expansion.';
+    } else if (r >= 0.3) {
+      msg = 'At this rate the returning base covers a little over a third of the 2026 target. ' +
+            'The company must acquire first-time buyers worth <strong>' + Math.round(ratio * 100) +
+            '% of everything overseas earned in 2025</strong>, in a single year — roughly the ' +
+            'acquisition workload it just completed, repeated.';
+    } else if (r >= 0.15) {
+      msg = 'Below thirty percent, the model stops describing a franchise and starts describing ' +
+            'a funnel. First-time buyers must contribute <strong>' + Math.round(ratio * 100) +
+            '%</strong> of prior-year overseas revenue. Growth of this kind is real, but it is ' +
+            'bought each year rather than compounded.';
+    } else {
+      msg = 'At this level virtually nothing recurs. The business would need new customers worth ' +
+            '<strong>' + Math.round(ratio * 100) + '% of all 2025 overseas revenue</strong> just to ' +
+            'meet a 20% growth target — meaning every prior year is effectively written off and ' +
+            'rebuilt. No consumer brand sustains this for long.';
+    }
+    document.getElementById('mRead').innerHTML = msg;
+  }
+
+  s.addEventListener('input', render);
+  render();
+})();
+</script>
+
+</body>
+</html>

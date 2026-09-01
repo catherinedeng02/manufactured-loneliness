@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2.4 — One Product, Three Businesses</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,900;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --ink:#f0ede6;
+  --bg:#0e0e0d;
+  --blue:#5090c8;
+  --dim:#55554f;
+  --faint:#33332f;
+  --line:#1e1e1c;
+  --warm:#c8a068;
+  --rust:#b06a5a;
+}
+
+body { background:var(--bg); color:var(--ink); font-family:'DM Mono',monospace; min-height:100vh; }
+
+.topbar {
+  position:sticky; top:0; z-index:60;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1rem 3rem; background:rgba(14,14,13,.94); backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+}
+.back {
+  font-size:9px; letter-spacing:.15em; text-transform:uppercase;
+  color:var(--dim); text-decoration:none;
+  display:inline-flex; align-items:center; gap:.5rem; transition:color .3s;
+}
+.back:hover { color:var(--ink); }
+.back .arw { display:inline-block; transition:transform .3s; }
+.back:hover .arw { transform:translateX(-3px); }
+.crumb { font-size:9px; letter-spacing:.15em; color:var(--faint); text-transform:uppercase; }
+
+.wrap { padding:0 3rem; }
+section { padding:5rem 0; border-bottom:1px solid #161614; }
+section:last-of-type { border-bottom:none; }
+
+.eyebrow { font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--faint); margin-bottom:1.4rem; }
+h1 { font-family:'Playfair Display',serif; font-size:clamp(2rem,4.8vw,3.8rem); font-weight:900; line-height:1.05; letter-spacing:-.01em; }
+h2 { font-family:'Playfair Display',serif; font-size:clamp(1.3rem,2.6vw,2rem); font-weight:900; line-height:1.2; margin-bottom:1.6rem; }
+.lede { font-style:italic; font-size:13px; color:var(--dim); margin-top:1.5rem; letter-spacing:.02em; }
+p.body { font-size:12px; line-height:2.1; color:#8a8a80; max-width:660px; margin-bottom:1.4rem; }
+p.body strong { color:var(--ink); font-weight:400; }
+.note { font-size:10px; line-height:1.9; color:#4a4a44; margin-top:1.2rem; max-width:660px; }
+
+/* ══ THREE BUSINESSES ══ */
+.biz { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:1px; background:var(--line); margin-top:2.5rem; }
+.bcol { background:var(--bg); padding:2rem 1.5rem; transition:background .4s; border-top:2px solid transparent; }
+.bcol:hover { background:#141412; }
+.bcol.one   { border-top-color:var(--blue); }
+.bcol.two   { border-top-color:var(--warm); }
+.bcol.three { border-top-color:var(--rust); }
+.bcol .bl { font-size:8px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); margin-bottom:1rem; }
+.bcol .bname { font-family:'Playfair Display',serif; font-size:1.35rem; font-weight:900; line-height:1.15; margin-bottom:.5rem; }
+.bcol.one .bname   { color:var(--blue); }
+.bcol.two .bname   { color:var(--warm); }
+.bcol.three .bname { color:var(--rust); }
+.bcol .bregion { font-size:9.5px; color:#6a6a62; margin-bottom:1.5rem; line-height:1.7; }
+
+.brow { display:flex; justify-content:space-between; gap:.8rem; padding:.6rem 0; border-top:1px solid #181816; font-size:10px; }
+.brow .k { color:#5a5a54; }
+.brow .v { color:#a5a59a; text-align:right; }
+.bcol .bnote { font-size:10px; line-height:1.9; color:#6a6a62; margin-top:1.4rem; padding-top:1.2rem; border-top:1px solid #181816; }
+
+/* ══ SEQUENCE ══ */
+.seq { margin-top:2.5rem; border:1px solid var(--line); }
+.seq-head { display:flex; padding:1rem 1.5rem; border-bottom:1px solid var(--line); font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); }
+.seq-head .sc1 { flex:1.4; }
+.seq-head .sc { flex:1; text-align:center; }
+.seq-row { display:flex; align-items:center; padding:1.4rem 1.5rem; border-bottom:1px solid #161614; transition:background .35s; }
+.seq-row:last-child { border-bottom:none; }
+.seq-row:hover { background:#121210; }
+.seq-name { flex:1.4; font-family:'Playfair Display',serif; font-size:1rem; font-weight:900; }
+.seq-cell { flex:1; text-align:center; }
+.pill {
+  display:inline-block; font-size:8px; letter-spacing:.13em; text-transform:uppercase;
+  padding:.35rem .7rem; border:1px solid;
+}
+.pill.proven  { color:var(--blue); border-color:rgba(80,144,200,.42); }
+.pill.partial { color:var(--warm); border-color:rgba(200,160,104,.4); }
+.pill.unknown { color:var(--rust); border-color:rgba(176,106,90,.4); }
+
+/* ══ SCENARIO ══ */
+.model { margin-top:2.5rem; border:1px solid var(--line); padding:2rem 1.5rem 1.4rem; }
+.model-head { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:1.8rem; }
+.model-title { font-size:10px; letter-spacing:.15em; text-transform:uppercase; color:var(--dim); }
+.model-flag { font-size:8px; letter-spacing:.14em; text-transform:uppercase; color:var(--warm); border:1px solid rgba(200,160,104,.32); padding:.25rem .55rem; }
+.controls { display:grid; grid-template-columns:repeat(auto-fit,minmax(215px,1fr)); gap:1.8rem; margin-bottom:2rem; }
+.ctrl label { display:block; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); margin-bottom:.8rem; }
+.ctrl .cval { color:var(--ink); }
+.ctrl input[type=range] { width:100%; }
+.ctrl.c1 input { accent-color:#5090c8; }
+.ctrl.c2 input { accent-color:#c8a068; }
+.ctrl.c3 input { accent-color:#b06a5a; }
+.ctrl .chint { font-size:9px; color:#3e3e3a; margin-top:.6rem; line-height:1.7; }
+
+.stackbar { height:38px; display:flex; overflow:hidden; border:1px solid var(--line); margin-bottom:.9rem; }
+.stackbar .sg { display:flex; align-items:center; padding:0 .7rem; font-size:9px; white-space:nowrap; transition:width .5s cubic-bezier(.4,0,.2,1); }
+.sg.g1 { background:rgba(80,144,200,.28); color:#cfe0ee; }
+.sg.g2 { background:rgba(200,160,104,.24); color:#e6d3b3; }
+.sg.g3 { background:rgba(176,106,90,.24); color:#e8c2b8; }
+
+.mgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1.4rem; margin-top:1.8rem; padding-top:1.6rem; border-top:1px solid var(--line); }
+.mcell .mv { font-family:'Playfair Display',serif; font-size:1.7rem; font-weight:900; line-height:1.1; }
+.mcell .mv.pass { color:var(--blue); }
+.mcell .mv.fail { color:var(--rust); }
+.mcell .ml { font-size:9px; color:#5a5a54; margin-top:.6rem; line-height:1.7; }
+.model-read { margin-top:1.6rem; padding-top:1.3rem; border-top:1px solid var(--line); font-size:11px; line-height:1.95; color:#8a8a80; min-height:72px; }
+.model-read strong { color:var(--ink); font-weight:400; }
+
+/* ══ VERDICT ══ */
+.verdict { border-left:2px solid var(--blue); padding:1.6rem 0 1.6rem 1.6rem; margin-top:2.5rem; max-width:700px; }
+.verdict .vq { font-family:'Playfair Display',serif; font-size:clamp(1.05rem,2vw,1.45rem); font-weight:900; line-height:1.35; margin-bottom:1rem; }
+.verdict p { font-size:11.5px; line-height:2; color:#8a8a80; }
+
+.closing { padding:6rem 3rem; text-align:center; border-top:1px solid var(--line); }
+.closing .cq {
+  font-family:'Playfair Display',serif; font-size:clamp(1.3rem,3vw,2.2rem);
+  font-weight:900; line-height:1.35; max-width:780px; margin:0 auto 1.6rem;
+}
+.closing .cs { font-size:11px; font-style:italic; color:var(--dim); }
+
+.next {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:2.5rem 3rem; border-top:1px solid var(--line);
+  text-decoration:none; color:var(--ink); transition:background .4s, padding-left .5s;
+}
+.next:hover { background:#131311; padding-left:3.9rem; }
+.next .nlabel { font-size:9px; letter-spacing:.15em; text-transform:uppercase; color:var(--faint); margin-bottom:.6rem; }
+.next .ntitle { font-family:'Playfair Display',serif; font-size:1.25rem; font-weight:900; }
+.next .narw { font-size:9px; letter-spacing:.15em; text-transform:uppercase; }
+
+.footnote { padding:2.5rem 3rem 4rem; font-size:9px; color:#2e2e2b; line-height:2; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="s2-arrive.html"><span class="arw">&larr;</span> Arrive, Belong, and Repeat.</a>
+  <span class="crumb">2.4</span>
+</div>
+
+<div class="wrap">
+
+  <section>
+    <div class="eyebrow">Chapter 2.4</div>
+    <h1>One Product,<br>Three Businesses</h1>
+    <div class="lede">Running them on a single playbook is the quiet risk.</div>
+  </section>
+
+  <!-- ══ THE SPLIT ══ -->
+  <section>
+    <h2>Not three geographies. Three stages of the same sequence.</h2>
+    <p class="body">
+      The obvious way to segment this company is by map. The more useful way is by
+      <strong>how far each market has actually travelled through the sequence this section is
+      named after</strong>. Arrive is now proven everywhere. Belong is proven in one place and
+      plausible in another. Repeat is proven in one place only.
+    </p>
+    <p class="body">
+      Sort the four reported regions on that basis and they collapse into three businesses
+      with genuinely different economics, different risks, and different correct metrics.
+    </p>
+
+    <div class="biz">
+      <div class="bcol one">
+        <div class="bl">Business One</div>
+        <div class="bname">The Franchise</div>
+        <div class="bregion">China &mdash; all three verbs proven</div>
+        <div class="brow"><span class="k">FY2025 revenue</span><span class="v">RMB 20.85bn</span></div>
+        <div class="brow"><span class="k">Growth</span><span class="v">+134.6%</span></div>
+        <div class="brow"><span class="k">Share of group</span><span class="v">56.2%</span></div>
+        <div class="brow"><span class="k">Net new stores</span><span class="v">+14</span></div>
+        <div class="brow"><span class="k">Repeat rate</span><span class="v">55.7%</span></div>
+        <div class="bnote">
+          The network is effectively built out; growth from here comes from selling more to
+          the 72.6m members already inside it. The correct metric is spend per member and
+          category breadth &mdash; not store count.
+        </div>
+      </div>
+
+      <div class="bcol two">
+        <div class="bl">Business Two</div>
+        <div class="bname">The Extension</div>
+        <div class="bregion">Asia-Pacific &mdash; Arrive proven, Belong plausible</div>
+        <div class="brow"><span class="k">FY2025 revenue</span><span class="v">RMB 8.01bn</span></div>
+        <div class="brow"><span class="k">Growth</span><span class="v">+157.6%</span></div>
+        <div class="brow"><span class="k">Share of group</span><span class="v">21.6%</span></div>
+        <div class="brow"><span class="k">Net new stores</span><span class="v">+31</span></div>
+        <div class="brow"><span class="k">Repeat rate</span><span class="v" style="color:#b06a5a">not reported</span></div>
+        <div class="bnote">
+          Structurally the closest thing to China: offline-led, culturally adjacent, and the
+          most productive physical estate in the group. The open question is siting &mdash;
+          travel retail converts visitors superbly, but a tourist is not yet a member.
+        </div>
+      </div>
+
+      <div class="bcol three">
+        <div class="bl">Business Three</div>
+        <div class="bname">The Experiment</div>
+        <div class="bregion">The Americas and Europe &mdash; Arrive only</div>
+        <div class="brow"><span class="k">FY2025 revenue</span><span class="v">RMB 8.26bn</span></div>
+        <div class="brow"><span class="k">Growth</span><span class="v">+652%</span></div>
+        <div class="brow"><span class="k">Share of group</span><span class="v">22.2%</span></div>
+        <div class="brow"><span class="k">Net new stores</span><span class="v">+64</span></div>
+        <div class="brow"><span class="k">Repeat rate</span><span class="v" style="color:#b06a5a">not reported</span></div>
+        <div class="bnote">
+          Acquired through feeds and landmark sites rather than through proximity. Now larger
+          than Asia-Pacific and roughly two years old. Every element of the China playbook that
+          depends on a decade-old membership system is unavailable here.
+        </div>
+      </div>
+    </div>
+
+    <p class="note">
+      The Americas and Europe are grouped not because they are similar to each other &mdash;
+      one is 64% online, the other 36% &mdash; but because they occupy the same position in the
+      sequence. Both have demonstrated arrival at extraordinary speed and neither has yet
+      demonstrated anything after it.
+    </p>
+  </section>
+
+  <!-- ══ SEQUENCE TABLE ══ -->
+  <section>
+    <h2>What each market has actually proved.</h2>
+
+    <div class="seq">
+      <div class="seq-head">
+        <span class="sc1">Business</span>
+        <span class="sc">Arrive</span>
+        <span class="sc">Belong</span>
+        <span class="sc">Repeat</span>
+      </div>
+      <div class="seq-row">
+        <span class="seq-name" style="color:#5090c8">The Franchise</span>
+        <span class="seq-cell"><span class="pill proven">Proven</span></span>
+        <span class="seq-cell"><span class="pill proven">Proven</span></span>
+        <span class="seq-cell"><span class="pill proven">55.7%</span></span>
+      </div>
+      <div class="seq-row">
+        <span class="seq-name" style="color:#c8a068">The Extension</span>
+        <span class="seq-cell"><span class="pill proven">Proven</span></span>
+        <span class="seq-cell"><span class="pill partial">Inferred</span></span>
+        <span class="seq-cell"><span class="pill unknown">No data</span></span>
+      </div>
+      <div class="seq-row">
+        <span class="seq-name" style="color:#b06a5a">The Experiment</span>
+        <span class="seq-cell"><span class="pill proven">Proven</span></span>
+        <span class="seq-cell"><span class="pill unknown">No data</span></span>
+        <span class="seq-cell"><span class="pill unknown">No data</span></span>
+      </div>
+    </div>
+
+    <p class="body" style="margin-top:2.5rem;">
+      Belong is marked <em>inferred</em> for Asia-Pacific because the evidence is indirect but
+      real: the highest offline revenue per store in the group, at roughly RMB 55.6m, is
+      difficult to produce from single visits alone. It is an inference from store
+      productivity, not a disclosed cohort metric, and it should be labelled as such.
+    </p>
+  </section>
+
+  <!-- ══ SCENARIO ══ -->
+  <section>
+    <h2>The 2026 target needs the unproven business to keep working.</h2>
+    <p class="body">
+      Management has guided to group revenue growth of not less than 20% in 2026 &mdash; a
+      floor of roughly RMB 44.5bn. Set a growth rate for each of the three businesses and see
+      whether the group clears it.
+    </p>
+
+    <div class="model">
+      <div class="model-head">
+        <span class="model-title">FY2026 group revenue &nbsp;&middot;&nbsp; three-business build-up</span>
+        <span class="model-flag">Scenario, not forecast</span>
+      </div>
+
+      <div class="controls">
+        <div class="ctrl c1">
+          <label>The Franchise &mdash; <span class="cval" id="g1Out">15</span>%</label>
+          <input type="range" id="g1" min="-10" max="80" value="15" step="1">
+          <div class="chint">China, RMB 20.85bn base. Network built out; growth now depends on depth rather than openings.</div>
+        </div>
+        <div class="ctrl c2">
+          <label>The Extension &mdash; <span class="cval" id="g2Out">40</span>%</label>
+          <input type="range" id="g2" min="-10" max="120" value="40" step="1">
+          <div class="chint">Asia-Pacific, RMB 8.01bn base. Grew 157.6% in 2025 off a smaller footprint.</div>
+        </div>
+        <div class="ctrl c3">
+          <label>The Experiment &mdash; <span class="cval" id="g3Out">60</span>%</label>
+          <input type="range" id="g3" min="-30" max="200" value="60" step="1">
+          <div class="chint">The Americas and Europe, RMB 8.26bn base. Grew roughly 652% in 2025 from almost nothing.</div>
+        </div>
+      </div>
+
+      <div class="stackbar" id="stack"></div>
+
+      <div class="mgrid">
+        <div class="mcell">
+          <div class="mv" id="vTotal">&mdash;</div>
+          <div class="ml">Implied FY2026 group revenue, RMB bn</div>
+        </div>
+        <div class="mcell">
+          <div class="mv" id="vGrowth">&mdash;</div>
+          <div class="ml">Implied group growth against RMB 37.12bn</div>
+        </div>
+        <div class="mcell">
+          <div class="mv" id="vGap">&mdash;</div>
+          <div class="ml">Against management's floor of not less than 20%</div>
+        </div>
+      </div>
+
+      <div class="model-read" id="mRead"></div>
+    </div>
+
+    <p class="note">
+      Try holding The Experiment flat at zero. On any reasonable assumption for the other two,
+      the group misses its own floor &mdash; which is the structural point. The guidance is
+      not a statement about China.
+    </p>
+  </section>
+
+  <!-- ══ VERDICT ══ -->
+  <section>
+    <div class="eyebrow">So what</div>
+    <div class="verdict">
+      <div class="vq">The group reports one growth rate. It is running three companies at three different ages.</div>
+      <p>
+        A single consolidated number is exactly the wrong instrument here. It blends a mature
+        franchise growing on depth, an adjacent extension growing on siting, and a
+        two-year-old acquisition engine growing on novelty &mdash; then presents the average
+        as though it described a strategy.
+      </p>
+      <p style="margin-top:1.2rem;">
+        The practical consequence is in the operating decisions, not the disclosure. One store
+        target across four networks with four different jobs. One margin benchmark across
+        channels with entirely different cost structures. One growth expectation applied to a
+        market where the customer relationship is a decade old and to one where it is
+        eighteen months old. <strong>Each of those is a small mistake that only becomes
+        visible after it has been made at scale.</strong>
+      </p>
+      <p style="margin-top:1.2rem;">
+        And beneath the operating question sits the one this section cannot answer. Every
+        market has now arrived. Whether they belong &mdash; whether the object means the same
+        thing in Bangkok, in Los Angeles, in Copenhagen &mdash; is not in any disclosure, and
+        may not be knowable for another two years. What can be said is that the company is
+        being valued as though the answer is already in.
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<div class="closing">
+  <div class="cq">Everyone arrived. Almost no one has been asked to come back yet.</div>
+  <div class="cs">End of Section Two.</div>
+</div>
+
+<a class="next" href="index.html">
+  <div>
+    <div class="nlabel">Next &nbsp;&middot;&nbsp; Section Three</div>
+    <div class="ntitle">Something Is Still Missing.</div>
+  </div>
+  <span class="narw">Return to portal &rarr;</span>
+</a>
+
+<div class="footnote">
+  Regional revenue FY2025: China RMB 20.851bn (+134.6%), Asia-Pacific RMB 8.011bn (+157.6%),
+  the Americas RMB 6.806bn (+748.4%), Europe and other RMB 1.451bn (+506.3%). Group revenue
+  RMB 37.120bn. The Americas and Europe combined grew from RMB 1.098bn in 2024 to RMB 8.257bn
+  in 2025, approximately 652%. Net store additions during 2025: China +14, Asia-Pacific +31,
+  the Americas +42, Europe and other +22. China member repeat purchase rate 55.7%; no repeat
+  purchase rate is disclosed for any overseas region. FY2026 guidance of group revenue growth
+  of not less than 20% is as stated by management at the FY2025 results presentation. The
+  scenario builder is illustrative and is not a forecast.
+</div>
+
+<script>
+(function () {
+  var BASE = { f: 20.851, e: 8.011, x: 8.257 };
+  var GROUP_2025 = 37.120;
+  var FLOOR = GROUP_2025 * 1.20;
+
+  var g1 = document.getElementById('g1');
+  var g2 = document.getElementById('g2');
+  var g3 = document.getElementById('g3');
+
+  function render() {
+    var a = +g1.value, b = +g2.value, c = +g3.value;
+    document.getElementById('g1Out').textContent = a;
+    document.getElementById('g2Out').textContent = b;
+    document.getElementById('g3Out').textContent = c;
+
+    var f = BASE.f * (1 + a / 100);
+    var e = BASE.e * (1 + b / 100);
+    var x = BASE.x * (1 + c / 100);
+    var total = f + e + x;
+    var growth = (total / GROUP_2025 - 1) * 100;
+    var gap = total - FLOOR;
+
+    document.getElementById('stack').innerHTML =
+      '<div class="sg g1" style="width:' + (f / total * 100) + '%">' + f.toFixed(1) + '</div>' +
+      '<div class="sg g2" style="width:' + (e / total * 100) + '%">' + e.toFixed(1) + '</div>' +
+      '<div class="sg g3" style="width:' + (x / total * 100) + '%">' + x.toFixed(1) + '</div>';
+
+    document.getElementById('vTotal').textContent  = total.toFixed(1);
+    document.getElementById('vGrowth').textContent = (growth >= 0 ? '+' : '') + growth.toFixed(1) + '%';
+
+    var gapEl = document.getElementById('vGap');
+    gapEl.textContent = (gap >= 0 ? '+' : '') + gap.toFixed(1) + 'bn';
+    gapEl.className = 'mv ' + (gap >= 0 ? 'pass' : 'fail');
+
+    var growthEl = document.getElementById('vGrowth');
+    growthEl.className = 'mv ' + (growth >= 20 ? 'pass' : 'fail');
+
+    var xShare = (x - BASE.x) / (total - GROUP_2025);
+    var msg;
+
+    if (growth < 20) {
+      msg = 'This combination <strong>misses the guided floor</strong> by RMB ' +
+            Math.abs(gap).toFixed(1) + 'bn. Note how little room the other two businesses have ' +
+            'to compensate: China is the largest but the most mature, and Asia-Pacific is ' +
+            'growing from a base less than half its size.';
+    } else if (c <= 0) {
+      msg = 'The group clears its floor <strong>without any contribution from The Experiment</strong> ' +
+            '— which requires the two proven businesses to carry the entire increase. Worth checking ' +
+            'whether the growth rates you have set for them are ones you would defend.';
+    } else if (xShare > 0.5) {
+      msg = 'More than half of the group&rsquo;s entire revenue increase comes from ' +
+            '<strong>The Experiment</strong> — the business with no disclosed repeat purchase data ' +
+            'and roughly two years of operating history. That is not necessarily wrong. It is simply ' +
+            'where the risk sits, and it is invisible in a single group growth number.';
+    } else {
+      msg = 'A balanced outcome: the group clears its floor with the increase spread across all three ' +
+            'businesses. This is the scenario management&rsquo;s guidance most likely contemplates — ' +
+            'and the one that depends least on any single unproven market.';
+    }
+
+    document.getElementById('mRead').innerHTML = msg;
+  }
+
+  [g1, g2, g3].forEach(function (s) { s.addEventListener('input', render); });
+  render();
+})();
+</script>
+
+</body>
+</html>

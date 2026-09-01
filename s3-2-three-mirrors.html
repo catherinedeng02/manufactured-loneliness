@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3.2 — Three Futures, Already Lived</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,900;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --ink:#f0ede6;
+  --bg:#0e0e0d;
+  --blush:#c86880;
+  --dim:#55554f;
+  --faint:#33332f;
+  --line:#1e1e1c;
+  --warm:#c8a068;
+  --sage:#7a9a80;
+  --rust:#b06a5a;
+}
+
+body { background:var(--bg); color:var(--ink); font-family:'DM Mono',monospace; min-height:100vh; }
+
+.topbar {
+  position:sticky; top:0; z-index:60;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1rem 3rem; background:rgba(14,14,13,.94); backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+}
+.back {
+  font-size:9px; letter-spacing:.15em; text-transform:uppercase;
+  color:var(--dim); text-decoration:none;
+  display:inline-flex; align-items:center; gap:.5rem; transition:color .3s;
+}
+.back:hover { color:var(--ink); }
+.back .arw { display:inline-block; transition:transform .3s; }
+.back:hover .arw { transform:translateX(-3px); }
+.crumb { font-size:9px; letter-spacing:.15em; color:var(--faint); text-transform:uppercase; }
+
+.wrap { padding:0 3rem; }
+section { padding:5rem 0; border-bottom:1px solid #161614; }
+section:last-of-type { border-bottom:none; }
+
+.eyebrow { font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--faint); margin-bottom:1.4rem; }
+h1 { font-family:'Playfair Display',serif; font-size:clamp(2rem,4.8vw,3.8rem); font-weight:900; line-height:1.05; letter-spacing:-.01em; }
+h2 { font-family:'Playfair Display',serif; font-size:clamp(1.3rem,2.6vw,2rem); font-weight:900; line-height:1.2; margin-bottom:1.6rem; }
+.lede { font-style:italic; font-size:13px; color:var(--dim); margin-top:1.5rem; letter-spacing:.02em; }
+p.body { font-size:12px; line-height:2.1; color:#8a8a80; max-width:660px; margin-bottom:1.4rem; }
+p.body strong { color:var(--ink); font-weight:400; }
+.note { font-size:10px; line-height:1.9; color:#4a4a44; margin-top:1.2rem; max-width:660px; }
+
+/* ══ COINCIDENCE ══ */
+.coincide { margin-top:2.5rem; border:1px solid var(--line); padding:2.2rem 1.8rem; }
+.coin-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:2rem; }
+.coin { text-align:center; }
+.coin .cbig { font-family:'Playfair Display',serif; font-size:3.4rem; font-weight:900; line-height:1; }
+.coin.a .cbig { color:var(--sage); }
+.coin.b .cbig { color:var(--blush); }
+.coin .cwho { font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#7a7a72; margin-top:1rem; }
+.coin .cdir { font-size:10px; color:#5a5a54; margin-top:.7rem; line-height:1.8; }
+.coin .carrow { font-size:1.1rem; margin-top:.6rem; }
+.coin.a .carrow { color:var(--sage); }
+.coin.b .carrow { color:var(--blush); }
+.coin-note { margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--line); font-size:11px; line-height:2; color:#8a8a80; text-align:center; }
+.coin-note strong { color:var(--ink); font-weight:400; }
+
+/* ══ MIRROR SELECTOR ══ */
+.mirrors { margin-top:2.5rem; border:1px solid var(--line); }
+.mtabs { display:flex; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+.mtabs button {
+  flex:1; min-width:150px;
+  background:transparent; border:none; border-right:1px solid var(--line);
+  color:var(--faint); font-family:'DM Mono',monospace;
+  font-size:9px; letter-spacing:.14em; text-transform:uppercase;
+  padding:1.1rem .9rem; cursor:pointer; text-align:left;
+  transition:color .35s, background .35s;
+}
+.mtabs button:last-child { border-right:none; }
+.mtabs button:hover { color:#88887e; }
+.mtabs button.on { color:var(--ink); background:#141412; }
+.mtabs button .tsub { display:block; margin-top:.55rem; font-size:11px; letter-spacing:.02em; color:var(--faint); text-transform:none; }
+.mtabs button.on .tsub { color:currentColor; }
+.mtabs button.on[data-i="0"] .tsub { color:var(--sage); }
+.mtabs button.on[data-i="1"] .tsub { color:var(--warm); }
+.mtabs button.on[data-i="2"] .tsub { color:var(--rust); }
+
+.mbody { padding:2.2rem 1.8rem; }
+.mhead { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1.2rem; margin-bottom:2rem; }
+.mname { font-family:'Playfair Display',serif; font-size:1.7rem; font-weight:900; line-height:1.15; }
+.mverdict { font-size:8px; letter-spacing:.16em; text-transform:uppercase; padding:.3rem .6rem; border:1px solid; white-space:nowrap; }
+
+.mrow { display:flex; gap:1.6rem; padding:1.1rem 0; border-top:1px solid #181816; }
+.mrow:first-of-type { border-top:none; }
+.mk { flex-shrink:0; width:118px; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); padding-top:.15rem; }
+.mv { flex:1; font-size:11px; line-height:1.95; color:#8a8a80; }
+.mv b { color:var(--ink); font-weight:400; }
+
+.mlesson { margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--line); }
+.mlesson .ll { font-size:8px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); margin-bottom:.9rem; }
+.mlesson .lt { font-family:'Playfair Display',serif; font-size:1.15rem; font-weight:900; line-height:1.3; margin-bottom:.9rem; }
+.mlesson .lb { font-size:11px; line-height:2; color:#8a8a80; }
+.mlesson .lb strong { color:var(--ink); font-weight:400; }
+
+/* ══ SUMMARY TABLE ══ */
+.summary { margin-top:2.5rem; border-top:1px solid var(--line); }
+.srow { display:flex; align-items:flex-start; gap:1.4rem; padding:1.2rem 0; border-bottom:1px solid #161614; transition:background .35s; }
+.srow:hover { background:#121210; }
+.srow.head { font-size:9px; letter-spacing:.13em; text-transform:uppercase; color:var(--faint); }
+.sc1 { flex:.8; font-size:11px; }
+.sc2 { flex:1; font-size:10.5px; }
+.sc3 { flex:1.5; font-size:10.5px; color:#7a7a72; line-height:1.8; }
+.srow:not(.head) .sc1 { font-family:'Playfair Display',serif; font-size:1rem; font-weight:900; }
+.srow:not(.head) .sc2 { color:#8a8a80; }
+
+/* ══ VERDICT ══ */
+.verdict { border-left:2px solid var(--blush); padding:1.6rem 0 1.6rem 1.6rem; margin-top:2.5rem; max-width:700px; }
+.verdict .vq { font-family:'Playfair Display',serif; font-size:clamp(1.05rem,2vw,1.45rem); font-weight:900; line-height:1.35; margin-bottom:1rem; }
+.verdict p { font-size:11.5px; line-height:2; color:#8a8a80; }
+
+.next {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:2.5rem 3rem; border-top:1px solid var(--line);
+  text-decoration:none; color:var(--ink); transition:background .4s, padding-left .5s;
+}
+.next:hover { background:#131311; padding-left:3.9rem; }
+.next .nlabel { font-size:9px; letter-spacing:.15em; text-transform:uppercase; color:var(--faint); margin-bottom:.6rem; }
+.next .ntitle { font-family:'Playfair Display',serif; font-size:1.25rem; font-weight:900; }
+.next .narw { font-size:9px; letter-spacing:.15em; text-transform:uppercase; }
+
+.footnote { padding:2.5rem 3rem 4rem; font-size:9px; color:#2e2e2b; line-height:2; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="s3-missing.html"><span class="arw">&larr;</span> Something Is Still Missing.</a>
+  <span class="crumb">3.2</span>
+</div>
+
+<div class="wrap">
+
+  <section>
+    <div class="eyebrow">Chapter 3.2</div>
+    <h1>Three Futures,<br>Already Lived</h1>
+    <div class="lede">Funko, Sanrio and Disney each reached this point. None chose the same door.</div>
+  </section>
+
+  <!-- ══ THE COINCIDENCE ══ -->
+  <section>
+    <h2>Two companies, the same number, opposite directions.</h2>
+    <p class="body">
+      Sanrio discloses that Hello Kitty now accounts for 37% of consolidated revenue. Pop Mart
+      discloses that THE MONSTERS accounts for 38.1%. The figures are almost identical, and
+      they mean opposite things.
+    </p>
+
+    <div class="coincide">
+      <div class="coin-grid">
+        <div class="coin a">
+          <div class="cbig">37%</div>
+          <div class="cwho">Sanrio &middot; Hello Kitty</div>
+          <div class="carrow">&darr;</div>
+          <div class="cdir">Arrived here by descending.<br>The result of a decade spent<br>deliberately reducing it.</div>
+        </div>
+        <div class="coin b">
+          <div class="cbig">38.1%</div>
+          <div class="cwho">Pop Mart &middot; THE MONSTERS</div>
+          <div class="carrow">&uarr;</div>
+          <div class="cdir">Arrived here by ascending.<br>Up from 23.3% in a single year,<br>and still rising.</div>
+        </div>
+      </div>
+      <div class="coin-note">
+        Sanrio's own filings state that operating profit declined for
+        <strong>seven consecutive fiscal years</strong>, from the year ended March 2015 through
+        the year ended March 2021, and attribute it to business development reliant on a single
+        core character. Pop Mart is at the same concentration ratio today &mdash; but at the
+        beginning of the curve rather than the end of it.
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ MIRRORS ══ -->
+  <section>
+    <h2>Three answers to the same question.</h2>
+    <p class="body">
+      Character concentration is not a novel problem. Three companies have faced a recognisable
+      version of it, made three different decisions, and lived long enough for the outcomes to
+      be visible. Select one.
+    </p>
+
+    <div class="mirrors">
+      <div class="mtabs" id="mtabs"></div>
+      <div class="mbody">
+        <div class="mhead">
+          <div class="mname" id="mName">&mdash;</div>
+          <div class="mverdict" id="mVerdict">&mdash;</div>
+        </div>
+        <div id="mRows"></div>
+        <div class="mlesson">
+          <div class="ll">What it means for Pop Mart</div>
+          <div class="lt" id="mLessonT">&mdash;</div>
+          <div class="lb" id="mLessonB">&mdash;</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ SUMMARY ══ -->
+  <section>
+    <h2>The three doors, side by side.</h2>
+
+    <div class="summary">
+      <div class="srow head">
+        <span class="sc1">Company</span>
+        <span class="sc2">The choice</span>
+        <span class="sc3">What it cost, and what it took</span>
+      </div>
+      <div class="srow">
+        <span class="sc1" style="color:#7a9a80">Sanrio</span>
+        <span class="sc2">Build</span>
+        <span class="sc3">Seven consecutive years of declining operating profit before the strategy changed. Roughly four more to recover. No acquisition &mdash; the second characters were grown internally and monetised through licensing.</span>
+      </div>
+      <div class="srow">
+        <span class="sc1" style="color:#c8a068">Disney</span>
+        <span class="sc2">Buy</span>
+        <span class="sc3">Approximately USD 15.5bn across three acquisitions between 2006 and 2012. Bought creative organisations and their catalogues outright, then ran them at arm's length rather than integrating them.</span>
+      </div>
+      <div class="srow">
+        <span class="sc1" style="color:#b06a5a">Funko</span>
+        <span class="sc2">Neither</span>
+        <span class="sc3">Scaled production against licensed characters it did not own. Ended 2022 with USD 246m of inventory, up 48%, and destroyed USD 30&ndash;36m of it. FY2023 net loss of USD 154m.</span>
+      </div>
+    </div>
+
+    <p class="body" style="margin-top:2.5rem;">
+      One detail from the Funko case belongs in this project specifically. The surplus stock was
+      <strong>physically destroyed rather than discounted</strong>, on the reasoning that selling
+      a collectible at one or two dollars would destroy the secondary market and devalue the
+      whole category. Funko paid roughly thirty million dollars in cash to protect scarcity
+      &mdash; which is the argument of <strong>1.3</strong>, priced and settled.
+    </p>
+  </section>
+
+  <!-- ══ VERDICT ══ -->
+  <section>
+    <div class="eyebrow">So what</div>
+    <div class="verdict">
+      <div class="vq">Only one of the three bought its way out, and it was already the largest company in the room.</div>
+      <p>
+        The comparison flatters the acquisition case less than expected. Sanrio solved character
+        concentration without buying anything, and the cost was time &mdash; seven years of
+        declining profit before the lesson landed. Disney solved it by acquisition, but it was
+        purchasing creative organisations at a scale, and with a currency, available to almost
+        nobody else. Funko demonstrates the third path, which is to keep scaling the hit and
+        hope, and it is the only one of the three with a documented failure attached.
+      </p>
+      <p style="margin-top:1.2rem;">
+        Pop Mart's position resembles Sanrio's structurally &mdash; it owns its characters,
+        90% of revenue comes from artist IP it controls, and its concentration ratio is
+        currently the same. It resembles Disney's in only one respect, which is that it now has
+        the balance sheet to consider buying. And it resembles Funko's in the one dimension that
+        should worry a reader of Section One: <strong>it has just spent a year scaling
+        production against a single character faster than any of these three ever did.</strong>
+      </p>
+      <p style="margin-top:1.2rem;">
+        None of that answers what an acquisition would actually be for. If the company were to
+        buy, the question is not how much &mdash; it is what specific gap the purchase closes,
+        and whether any available target closes it. That is <strong>3.3</strong>.
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<a class="next" href="s3-3-who-would-you-buy.html">
+  <div>
+    <div class="nlabel">Next &nbsp;&middot;&nbsp; 3.3</div>
+    <div class="ntitle">Who Would You Buy?</div>
+  </div>
+  <span class="narw">Enter &rarr;</span>
+</a>
+
+<div class="footnote">
+  Sanrio figures from company disclosures: operating profit declined for seven consecutive
+  fiscal years from the year ended March 2015 through the year ended March 2021, attributed by
+  the company to overconcentration in product licensing in Europe and the Americas and to
+  reliance on a single core character; multiple-character brand development from the year ended
+  March 2022 produced a recovery. Sanrio reported net sales of ¥144.9bn for the year ended March
+  2025, up approximately 45%. Hello Kitty's share of consolidated revenue is reported at 37%.
+  Funko figures from company filings and results commentary: ending inventory of USD 246.4m at
+  the close of 2022, up 48% year on year; inventory destruction of USD 30&ndash;36m announced
+  March 2023, with a USD 30.3m write-down recorded in Q1 2023; FY2023 net loss of USD 154.1m,
+  including a USD 132.5m deferred tax valuation allowance charge; inventory reduced to USD 119m
+  by the end of 2023. Disney acquisition values are the announced transaction values for Pixar
+  (2006), Marvel Entertainment (2009) and Lucasfilm (2012). This chapter describes historical
+  precedent and is not a recommendation.
+</div>
+
+<script>
+var MIRRORS = [
+  {
+    tab:'Sanrio', sub:'Build',
+    name:'Sanrio',
+    verdict:'Recovered — slowly',
+    vcol:'#7a9a80',
+    rows:[
+      ['The situation', 'A character portfolio in which one face, <b>Hello Kitty</b>, carried the business across Europe and the Americas. The company\u2019s own filings identify reliance on a single core character as the cause of what followed.'],
+      ['What happened', 'Operating profit declined for <b>seven consecutive fiscal years</b>, from the year ended March 2015 through the year ended March 2021.'],
+      ['The choice', 'Build rather than buy. Investment and marketing were deliberately redirected toward Kuromi, Cinnamoroll, My Melody and Pompompurin, and monetisation shifted toward licensing rather than owned manufacturing.'],
+      ['The outcome', 'A V-shaped recovery from the year ended March 2022. Net sales of <b>¥144.9bn</b> for the year ended March 2025, up roughly 45%. Hello Kitty\u2019s share of consolidated revenue reduced to <b>37%</b>, with diversification most advanced in Japan and Asia and dependence still high in Europe and the Americas.']
+    ],
+    lessonT:'The cheapest path is the slowest one.',
+    lessonB:'Sanrio never acquired its way out. It grew the second characters internally, which is exactly the capability Pop Mart demonstrated once in 2025 with \u661F\u661F\u4EBA. The uncomfortable part of this mirror is the timeline: Sanrio needed <strong>seven years of falling profit</strong> before the strategy changed, and roughly four more to recover. If the concentration problem is real, building is the answer that arrives last.'
+  },
+  {
+    tab:'Disney', sub:'Buy',
+    name:'Disney',
+    verdict:'Worked — at a price',
+    vcol:'#c8a068',
+    rows:[
+      ['The situation', 'A studio whose animation output had weakened relative to its own history, holding distribution, parks and retail infrastructure that needed characters to fill it.'],
+      ['What happened', 'Rather than rebuild creative capability internally, the company bought it three times: <b>Pixar in 2006</b>, <b>Marvel in 2009</b>, and <b>Lucasfilm in 2012</b>, for approximately <b>USD 15.5bn</b> in total.'],
+      ['The choice', 'Buy the organisation, not just the catalogue. In each case the acquired studio retained substantial creative autonomy rather than being absorbed into the parent\u2019s process.'],
+      ['The outcome', 'The acquisitions supplied decades of franchise material across film, parks, consumer products and streaming. The structure is now the reference case for character portfolio acquisition.']
+    ],
+    lessonT:'What Disney bought was people, not characters.',
+    lessonB:'The catalogues mattered, but the durable asset in each transaction was a <strong>creative organisation that had repeatedly produced hits</strong> — a demonstrated replacement rate. That is precisely what 3.1 identified as unproven at Pop Mart. It is also the hardest thing to buy: creative teams are retainable only by consent, and the price paid was for future output that had not yet been made.'
+  },
+  {
+    tab:'Funko', sub:'Neither',
+    name:'Funko',
+    verdict:'Failed — expensively',
+    vcol:'#b06a5a',
+    rows:[
+      ['The situation', 'A collectibles business built on <b>licensed</b> characters — Marvel, Star Wars, gaming and film properties rented from their owners rather than created in-house. Revenue crossed USD 1bn in 2021, up 58% on the prior year.'],
+      ['What happened', 'A licence-everything, produce-everything strategy scaled SKU count and production against demand that did not hold. Inventory closed 2022 at <b>USD 246.4m</b>, up 48% year on year, exceeding the physical capacity of the distribution network.'],
+      ['The choice', 'Neither building nor buying IP. The response to a fading hit was more supply against the same rented characters.'],
+      ['The outcome', '<b>USD 30–36m of inventory physically destroyed</b> in 2023 rather than discounted, a USD 30.3m write-down, and a FY2023 net loss of <b>USD 154.1m</b>. Inventory was subsequently cut by more than half.']
+    ],
+    lessonT:'The failure was not the fad. It was scaling into it.',
+    lessonB:'Funko\u2019s mistake is the one Section One describes as a live capability at Pop Mart: an operation that can multiply output faster than demand can be verified. The mitigating difference is ownership — Funko rented its characters and paid royalties on every unit, while <strong>90% of Pop Mart\u2019s revenue comes from artist IP it controls</strong>. That protects the margin. It does not protect against making too many.'
+  }
+];
+
+(function () {
+  var tabs = document.getElementById('mtabs');
+  var active = 0;
+
+  MIRRORS.forEach(function (m, i) {
+    var b = document.createElement('button');
+    b.setAttribute('data-i', i);
+    b.innerHTML = m.tab + '<span class="tsub">' + m.sub + '</span>';
+    b.addEventListener('click', function () { active = i; render(); });
+    tabs.appendChild(b);
+  });
+
+  function render() {
+    var m = MIRRORS[active];
+    Array.prototype.forEach.call(tabs.children, function (b, i) {
+      b.classList.toggle('on', i === active);
+    });
+
+    document.getElementById('mName').textContent = m.name;
+
+    var v = document.getElementById('mVerdict');
+    v.textContent = m.verdict;
+    v.style.color = m.vcol;
+    v.style.borderColor = m.vcol + '66';
+
+    document.getElementById('mRows').innerHTML = m.rows.map(function (r) {
+      return '<div class="mrow"><span class="mk">' + r[0] + '</span><span class="mv">' + r[1] + '</span></div>';
+    }).join('');
+
+    document.getElementById('mLessonT').textContent = m.lessonT;
+    document.getElementById('mLessonB').innerHTML   = m.lessonB;
+  }
+
+  render();
+})();
+</script>
+
+</body>
+</html>

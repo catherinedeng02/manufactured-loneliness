@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1.4 — What Would You Have Paid in 2020?</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,900;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --ink:#f0ede6;
+  --bg:#0e0e0d;
+  --steel:#9090b8;
+  --dim:#55554f;
+  --faint:#33332f;
+  --line:#1e1e1c;
+  --warm:#c8a068;
+  --rust:#b06a5a;
+}
+
+body { background:var(--bg); color:var(--ink); font-family:'DM Mono',monospace; min-height:100vh; }
+
+.topbar {
+  position:sticky; top:0; z-index:60;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1rem 3rem; background:rgba(14,14,13,.94); backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+}
+.back {
+  font-size:9px; letter-spacing:.15em; text-transform:uppercase;
+  color:var(--dim); text-decoration:none;
+  display:inline-flex; align-items:center; gap:.5rem; transition:color .3s;
+}
+.back:hover { color:var(--ink); }
+.back .arw { display:inline-block; transition:transform .3s; }
+.back:hover .arw { transform:translateX(-3px); }
+.crumb { font-size:9px; letter-spacing:.15em; color:var(--faint); text-transform:uppercase; }
+
+.wrap { padding:0 3rem; }
+section { padding:5rem 0; border-bottom:1px solid #161614; }
+section:last-of-type { border-bottom:none; }
+
+.eyebrow { font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--faint); margin-bottom:1.4rem; }
+h1 { font-family:'Playfair Display',serif; font-size:clamp(2rem,4.8vw,3.8rem); font-weight:900; line-height:1.05; letter-spacing:-.01em; }
+h2 { font-family:'Playfair Display',serif; font-size:clamp(1.3rem,2.6vw,2rem); font-weight:900; line-height:1.2; margin-bottom:1.6rem; }
+.lede { font-style:italic; font-size:13px; color:var(--dim); margin-top:1.5rem; letter-spacing:.02em; }
+p.body { font-size:12px; line-height:2.1; color:#8a8a80; max-width:660px; margin-bottom:1.4rem; }
+p.body strong { color:var(--ink); font-weight:400; }
+.note { font-size:10px; line-height:1.9; color:#4a4a44; margin-top:1.2rem; max-width:660px; }
+
+/* known facts table */
+.facts { margin-top:2.5rem; border-top:1px solid var(--line); }
+.fact-row {
+  display:flex; align-items:baseline; gap:2rem;
+  padding:.95rem 0; border-bottom:1px solid #161614;
+  transition:background .35s;
+}
+.fact-row:hover { background:#121210; }
+.fact-k { flex:1; font-size:11px; color:#7a7a72; }
+.fact-v { flex-shrink:0; font-family:'Playfair Display',serif; font-size:1.05rem; font-weight:900; }
+.fact-v.mute { color:var(--dim); font-family:'DM Mono',monospace; font-size:11px; font-weight:400; }
+
+/* model */
+.model { margin-top:2.5rem; border:1px solid var(--line); padding:2rem 1.5rem 1.4rem; }
+.model-head { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:1.8rem; }
+.model-title { font-size:10px; letter-spacing:.15em; text-transform:uppercase; color:var(--dim); }
+.model-flag { font-size:8px; letter-spacing:.14em; text-transform:uppercase; color:var(--warm); border:1px solid rgba(200,160,104,.32); padding:.25rem .55rem; }
+
+.controls { display:grid; grid-template-columns:repeat(auto-fit,minmax(215px,1fr)); gap:1.8rem; margin-bottom:2.2rem; }
+.ctrl label { display:block; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); margin-bottom:.8rem; }
+.ctrl .cval { color:var(--ink); }
+.ctrl input[type=range] { width:100%; accent-color:#9090b8; }
+.ctrl .chint { font-size:9px; color:#3e3e3a; margin-top:.6rem; line-height:1.7; }
+
+.mout { border-top:1px solid var(--line); padding-top:1.6rem; }
+.mgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1.4rem; }
+.mcell .mv { font-family:'Playfair Display',serif; font-size:1.7rem; font-weight:900; line-height:1.1; }
+.mcell .mv.hero { color:var(--steel); font-size:2.1rem; }
+.mcell .ml { font-size:9px; color:#5a5a54; margin-top:.6rem; line-height:1.7; }
+
+.compare { margin-top:1.8rem; padding-top:1.4rem; border-top:1px solid var(--line); font-size:11px; line-height:1.95; color:#8a8a80; }
+.compare strong { color:var(--ink); font-weight:400; }
+
+.reveal-btn {
+  margin-top:1.6rem; width:100%; padding:.9rem;
+  background:transparent; border:1px solid #44443f; color:var(--ink);
+  font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.18em;
+  text-transform:uppercase; cursor:pointer; transition:border-color .3s, background .3s;
+}
+.reveal-btn:hover { border-color:var(--ink); background:#151513; }
+
+.revealed { display:none; margin-top:1.8rem; padding-top:1.6rem; border-top:1px solid rgba(200,160,104,.3); }
+.revealed.on { display:block; }
+.revealed .rlabel { font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--warm); margin-bottom:1.3rem; }
+
+/* charts */
+.chart-frame { margin-top:2.5rem; border:1px solid var(--line); padding:2rem 1.5rem 1.2rem; }
+.chart-head { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:2rem; }
+.chart-title { font-size:10px; letter-spacing:.15em; text-transform:uppercase; color:var(--dim); }
+svg { width:100%; height:auto; display:block; overflow:visible; }
+.axis-line { stroke:#262623; stroke-width:1; }
+.grid-line { stroke:#1a1a18; stroke-width:1; }
+.axis-text { fill:#44443f; font-family:'DM Mono',monospace; font-size:9px; }
+.readout { margin-top:1.5rem; padding-top:1.2rem; border-top:1px solid var(--line); font-size:11px; line-height:1.9; color:#8a8a80; }
+.readout strong { color:var(--ink); font-weight:400; }
+.legend { display:flex; gap:1.6rem; margin-top:1.3rem; flex-wrap:wrap; }
+.legend span { font-size:9px; color:var(--dim); display:inline-flex; align-items:center; gap:.45rem; }
+.swatch { width:14px; height:2px; display:inline-block; }
+
+/* blindspots */
+.blind { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1px; background:var(--line); margin-top:2.5rem; }
+.bcard { background:var(--bg); padding:1.7rem 1.3rem; transition:background .4s; }
+.bcard:hover { background:#141412; }
+.bcard .bn { font-size:8px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); margin-bottom:.9rem; }
+.bcard .bt { font-family:'Playfair Display',serif; font-size:1rem; font-weight:900; line-height:1.25; margin-bottom:.7rem; }
+.bcard .bb { font-size:10px; line-height:1.85; color:#6a6a62; }
+.bcard .bv { font-size:9px; color:var(--steel); margin-top:.9rem; letter-spacing:.05em; }
+
+/* verdict */
+.verdict { border-left:2px solid var(--warm); padding:1.6rem 0 1.6rem 1.6rem; margin-top:2.5rem; max-width:700px; }
+.verdict .vq { font-family:'Playfair Display',serif; font-size:clamp(1.05rem,2vw,1.45rem); font-weight:900; line-height:1.35; margin-bottom:1rem; }
+.verdict p { font-size:11.5px; line-height:2; color:#8a8a80; }
+
+/* closing */
+.closing { padding:6rem 3rem; text-align:center; border-top:1px solid var(--line); }
+.closing .cq {
+  font-family:'Playfair Display',serif; font-size:clamp(1.3rem,3vw,2.2rem);
+  font-weight:900; line-height:1.35; max-width:760px; margin:0 auto 1.6rem;
+}
+.closing .cs { font-size:11px; font-style:italic; color:var(--dim); }
+
+.next {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:2.5rem 3rem; border-top:1px solid var(--line);
+  text-decoration:none; color:var(--ink); transition:background .4s, padding-left .5s;
+}
+.next:hover { background:#131311; padding-left:3.9rem; }
+.next .nlabel { font-size:9px; letter-spacing:.15em; text-transform:uppercase; color:var(--faint); margin-bottom:.6rem; }
+.next .ntitle { font-family:'Playfair Display',serif; font-size:1.25rem; font-weight:900; }
+.next .narw { font-size:9px; letter-spacing:.15em; text-transform:uppercase; }
+
+.footnote { padding:2.5rem 3rem 4rem; font-size:9px; color:#2e2e2b; line-height:2; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="s1-make-it.html"><span class="arw">&larr;</span> Make It. Millions of It.</a>
+  <span class="crumb">1.4</span>
+</div>
+
+<div class="wrap">
+
+  <section>
+    <div class="eyebrow">Chapter 1.4</div>
+    <h1>What Would You<br>Have Paid in 2020?</h1>
+    <div class="lede">What the 2020 model could not have seen coming.</div>
+  </section>
+
+  <!-- ══ WHAT WAS KNOWABLE ══ -->
+  <section>
+    <h2>Everything on the table in December 2020.</h2>
+    <p class="body">
+      Hindsight makes every valuation look either timid or reckless. The only honest way to
+      judge the IPO price is to rebuild the model with the information that existed on the
+      day &mdash; and then look at what that information could not contain.
+    </p>
+
+    <div class="facts">
+      <div class="fact-row"><span class="fact-k">Listing date</span><span class="fact-v mute">11 December 2020, HKEX</span></div>
+      <div class="fact-row"><span class="fact-k">Offer price</span><span class="fact-v">HK$38.50</span></div>
+      <div class="fact-row"><span class="fact-k">Shares outstanding post-IPO</span><span class="fact-v mute">1.402bn</span></div>
+      <div class="fact-row"><span class="fact-k">Implied market capitalisation at offer</span><span class="fact-v">HK$54.0bn</span></div>
+      <div class="fact-row"><span class="fact-k">Revenue 2019</span><span class="fact-v">RMB 1.68bn</span></div>
+      <div class="fact-row"><span class="fact-k">Revenue growth 2018 &rarr; 2019</span><span class="fact-v">+227%</span></div>
+      <div class="fact-row"><span class="fact-k">Revenue growth H1 2020 (Covid)</span><span class="fact-v">+50.5%</span></div>
+      <div class="fact-row"><span class="fact-k">Net profit 2019</span><span class="fact-v">RMB 451m</span></div>
+      <div class="fact-row"><span class="fact-k">Trailing P/E at offer, on 2019 earnings</span><span class="fact-v">101&times;</span></div>
+      <div class="fact-row"><span class="fact-k">Overseas share of revenue</span><span class="fact-v mute">Negligible</span></div>
+      <div class="fact-row"><span class="fact-k">First-day close</span><span class="fact-v">HK$77.10</span></div>
+    </div>
+
+    <p class="note">
+      A contemporaneous sell-side initiation published on listing day forecast 2022 net profit
+      of RMB 1.95bn, applied a 40&ndash;45&times; exit multiple, and derived a target market
+      capitalisation of HK$93&ndash;107bn. That model is the benchmark used below.
+    </p>
+  </section>
+
+  <!-- ══ BUILD THE MODEL ══ -->
+  <section>
+    <h2>Build the 2020 model yourself.</h2>
+    <p class="body">
+      Three assumptions carry almost all the weight: how fast revenue compounds, what margin
+      the business settles at, and what multiple the market will pay for it at the end. Set
+      them the way you would have in December 2020 &mdash; with a 101&times; trailing multiple
+      on screen, a pandemic underway, and no evidence yet that any of this travels abroad.
+    </p>
+
+    <div class="model">
+      <div class="model-head">
+        <span class="model-title">Five-year valuation, 2020 base &rarr; 2025</span>
+        <span class="model-flag">Your assumptions</span>
+      </div>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label>Revenue CAGR &mdash; <span class="cval" id="gOut">30</span>%</label>
+          <input type="range" id="gSlider" min="5" max="80" value="30" step="1">
+          <div class="chint">2020 revenue base: RMB 2.51bn. Growth had just decelerated from 227% to 49%.</div>
+        </div>
+        <div class="ctrl">
+          <label>Net margin by 2025 &mdash; <span class="cval" id="mOut">22</span>%</label>
+          <input type="range" id="mSlider" min="8" max="40" value="22" step="1">
+          <div class="chint">2020 adjusted net margin was roughly 23%, on RMB 590m of adjusted profit.</div>
+        </div>
+        <div class="ctrl">
+          <label>Exit P/E &mdash; <span class="cval" id="pOut">35</span>&times;</label>
+          <input type="range" id="pSlider" min="10" max="70" value="35" step="1">
+          <div class="chint">Consumer-brand comparables traded in the twenties to forties.</div>
+        </div>
+      </div>
+
+      <div class="mout">
+        <div class="mgrid">
+          <div class="mcell">
+            <div class="mv" id="vRev">&mdash;</div>
+            <div class="ml">Modelled 2025 revenue, RMB bn</div>
+          </div>
+          <div class="mcell">
+            <div class="mv" id="vProfit">&mdash;</div>
+            <div class="ml">Modelled 2025 net profit, RMB bn</div>
+          </div>
+          <div class="mcell">
+            <div class="mv hero" id="vCap">&mdash;</div>
+            <div class="ml">Implied 2025 market capitalisation, HK$bn</div>
+          </div>
+        </div>
+
+        <div class="compare" id="compare"></div>
+
+        <button class="reveal-btn" id="revealBtn">Reveal what actually happened</button>
+
+        <div class="revealed" id="revealed">
+          <div class="rlabel">Actual, FY2025</div>
+          <div class="mgrid">
+            <div class="mcell">
+              <div class="mv" style="color:#c8a068">37.1</div>
+              <div class="ml">Revenue, RMB bn. Implied 2020&ndash;25 CAGR of <b>71.4%</b>.</div>
+            </div>
+            <div class="mcell">
+              <div class="mv" style="color:#c8a068">13.1</div>
+              <div class="ml">Adjusted net profit, RMB bn. Net margin of <b>35.2%</b>.</div>
+            </div>
+            <div class="mcell">
+              <div class="mv" style="color:#c8a068">&mdash;</div>
+              <div class="ml">Market capitalisation has since traded through a full cycle. See the path below.</div>
+            </div>
+          </div>
+          <div class="compare" id="gap"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ THE PATH ══ -->
+  <section>
+    <h2>The model was wrong twice, in opposite directions.</h2>
+    <p class="body">
+      The listing-day forecast expected RMB 1.95bn of net profit by 2022. Actual 2022 net
+      profit fell 44% year on year to roughly RMB 0.48bn &mdash; a <strong>four-fold
+      overestimate</strong>. The share price followed: from a February 2021 peak near
+      HK$107.6 to below HK$10 by the end of 2022, a market capitalisation collapse from
+      roughly HK$150bn to HK$13bn.
+    </p>
+    <p class="body">
+      The same model then proved <strong>catastrophically too conservative</strong>. Its
+      2022 profit forecast of RMB 1.95bn was surpassed nearly seven times over by 2025's
+      adjusted RMB 13.08bn.
+    </p>
+
+    <div class="chart-frame">
+      <div class="chart-head">
+        <span class="chart-title">Revenue &nbsp;&middot;&nbsp; RMB bn &nbsp;&middot;&nbsp; 2019&ndash;2025</span>
+      </div>
+      <svg viewBox="0 0 760 300" id="revChart" role="img" aria-label="Revenue path 2019 to 2025"></svg>
+      <div class="legend">
+        <span><i class="swatch" style="background:#9090b8"></i> Actual revenue</span>
+        <span><i class="swatch" style="background:#b06a5a"></i> The flat years, 2021&ndash;22</span>
+      </div>
+      <div class="readout">
+        Between 2021 and 2022 revenue moved from RMB 4.49bn to RMB 4.62bn &mdash; growth of
+        <strong>2.8%</strong>. For two years the thesis looked broken, and by most reasonable
+        measures it was. Everything that makes the story remarkable today happened after the
+        point at which the market had already given up on it.
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ BLIND SPOTS ══ -->
+  <section>
+    <h2>Four things no 2020 model contained.</h2>
+    <p class="body">
+      Not because the analysts were careless, but because none of these were variables yet.
+      They were not mis-forecast &mdash; they were <strong>absent from the model
+      entirely</strong>.
+    </p>
+
+    <div class="blind">
+      <div class="bcard">
+        <div class="bn">Blind spot 01</div>
+        <div class="bt">A format<br>that didn't exist</div>
+        <div class="bb">Plush was not a meaningful category in 2020. By 2025 it was the largest, at RMB 18.71bn &mdash; larger than the entire company had been three years earlier.</div>
+        <div class="bv">Unmodellable</div>
+      </div>
+      <div class="bcard">
+        <div class="bn">Blind spot 02</div>
+        <div class="bt">A market<br>that wasn't there</div>
+        <div class="bb">Overseas revenue was negligible at listing. By 2025 it reached 43.8% of the group, having grown from 16.9% as recently as 2023.</div>
+        <div class="bv">Optionality, unpriced</div>
+      </div>
+      <div class="bcard">
+        <div class="bn">Blind spot 03</div>
+        <div class="bt">A character<br>with no history</div>
+        <div class="bb">THE MONSTERS was one IP among many in 2020. In 2025 it earned RMB 14.16bn on its own &mdash; 38.1% of group revenue, and more than the next four IPs combined.</div>
+        <div class="bv">Not forecastable</div>
+      </div>
+      <div class="bcard">
+        <div class="bn">Blind spot 04</div>
+        <div class="bt">A margin<br>nobody projected</div>
+        <div class="bb">Gross margin moved from around 60% at listing to 72.1% while volume multiplied &mdash; the operational point established in 1.1 and 1.2.</div>
+        <div class="bv">Structurally underrated</div>
+      </div>
+    </div>
+
+    <p class="note">
+      Three of the four are demand-side surprises. The fourth is the supply-side capability
+      that made the other three convertible into revenue &mdash; which is why it is the one
+      worth understanding first.
+    </p>
+  </section>
+
+  <!-- ══ VERDICT ══ -->
+  <section>
+    <div class="eyebrow">So what</div>
+    <div class="verdict">
+      <div class="vq">The IPO price was not wrong. The confidence interval was.</div>
+      <p>
+        At HK$38.50 the market applied 101&times; trailing earnings to a company whose growth
+        had just decelerated from 227% to 49% in the middle of a pandemic. Judged against the
+        following two years, that was expensive. Judged against the following five, it was one
+        of the cheapest entry points of the decade.
+      </p>
+      <p style="margin-top:1.2rem;">
+        Both statements are true, which is the actual finding. The 2020 model produced a
+        <em>point estimate</em> for a business whose value was governed by a small number of
+        binary, unmodellable outcomes: whether a new format would land, whether the brand would
+        travel, whether one character among dozens would become globally legible. Those are not
+        variables you refine with a better multiple. <strong>They are variables you can only
+        size, and then hold a position against.</strong>
+      </p>
+      <p style="margin-top:1.2rem;">
+        The practical implication for anyone valuing this company today is uncomfortable, and
+        it is the note S1 ends on: the same structure that made 2020's model useless makes
+        2026's model useless in the same way. The question is no longer whether the factory
+        works. It is whether the next character arrives &mdash; and there is no line in any
+        model for that.
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<div class="closing">
+  <div class="cq">Every SKULLPANDA begins as the same block of vinyl.<br>What separates one from the next is the story printed onto it.</div>
+  <div class="cs">End of Section One.</div>
+</div>
+
+<a class="next" href="index.html">
+  <div>
+    <div class="nlabel">Next &nbsp;&middot;&nbsp; Section Two</div>
+    <div class="ntitle">Arrive, Belong, and Repeat.</div>
+  </div>
+  <span class="narw">Return to portal &rarr;</span>
+</a>
+
+<div class="footnote">
+  Revenue: RMB 1.683bn (2019), 2.513bn (2020), 4.491bn (2021), 4.617bn (2022), 6.301bn (2023),
+  13.038bn (2024), 37.120bn (2025). Net profit RMB 451m (2019), 524m (2020), 854m (2021);
+  2022 net profit declined approximately 44% year on year. FY2025 adjusted net profit RMB
+  13.08bn. IPO priced at HK$38.50 on 11 December 2020 with 1.402bn shares outstanding;
+  first-day close HK$77.10; February 2021 peak approximately HK$107.6; end-2022 trough below
+  HK$10. The 2022 forecast of RMB 1.95bn net profit and HK$93&ndash;107bn target
+  capitalisation are taken from a sell-side initiation published on listing day. The valuation
+  builder is a simplified three-assumption model and is not a recommendation.
+</div>
+
+<script>
+/* ══ VALUATION MODEL ══ */
+(function () {
+  var BASE_REV = 2.513;     /* RMB bn, FY2020 */
+  var FX = 1.08;            /* indicative RMB → HKD */
+
+  var gS = document.getElementById('gSlider');
+  var mS = document.getElementById('mSlider');
+  var pS = document.getElementById('pSlider');
+
+  function render() {
+    var g = +gS.value / 100, m = +mS.value / 100, p = +pS.value;
+
+    document.getElementById('gOut').textContent = gS.value;
+    document.getElementById('mOut').textContent = mS.value;
+    document.getElementById('pOut').textContent = pS.value;
+
+    var rev2025 = BASE_REV * Math.pow(1 + g, 5);
+    var profit  = rev2025 * m;
+    var capHKD  = profit * p * FX;
+
+    document.getElementById('vRev').textContent    = rev2025.toFixed(1);
+    document.getElementById('vProfit').textContent = profit.toFixed(2);
+    document.getElementById('vCap').textContent    = capHKD.toFixed(0);
+
+    var vsIPO = capHKD / 54.0;
+    var msg = 'Against the HK$54.0bn implied at the offer price, this model values the company at <strong>'
+            + vsIPO.toFixed(1) + '&times;</strong> the IPO capitalisation five years out. ';
+
+    if (capHKD < 54) {
+      msg += 'On these assumptions the listing price was <strong>too high</strong> &mdash; the position loses money over five years.';
+    } else if (capHKD < 107) {
+      msg += 'That sits below the HK$93&ndash;107bn target range published by sell-side on listing day &mdash; a more cautious view than the street held.';
+    } else if (capHKD < 250) {
+      msg += 'That is broadly consistent with, or above, the most bullish published targets at the time.';
+    } else {
+      msg += 'This is far outside anything published in 2020. Worth asking whether you would actually have defended it in an investment committee that December.';
+    }
+
+    document.getElementById('compare').innerHTML = msg;
+
+    /* gap vs actual */
+    var gapRev    = 37.12 / rev2025;
+    var gapProfit = 13.08 / profit;
+    document.getElementById('gap').innerHTML =
+      'Your model understates actual 2025 revenue by <strong>' + gapRev.toFixed(1) +
+      '&times;</strong> and actual adjusted profit by <strong>' + gapProfit.toFixed(1) +
+      '&times;</strong>. To have reached the real outcome you would have needed to assume a ' +
+      '<strong>71.4% five-year revenue CAGR</strong> and a <strong>35.2% net margin</strong> ' +
+      '&mdash; in a year when growth had just halved and the company sold almost nothing outside China.';
+  }
+
+  [gS, mS, pS].forEach(function (s) { s.addEventListener('input', render); });
+
+  document.getElementById('revealBtn').addEventListener('click', function () {
+    document.getElementById('revealed').classList.add('on');
+    this.style.display = 'none';
+  });
+
+  render();
+})();
+
+/* ══ REVENUE PATH ══ */
+(function () {
+  var svg = document.getElementById('revChart');
+  var L = 70, R = 740, T = 30, B = 240, MAX = 40;
+  var data = [
+    { yr:'2019', v:1.68,  flat:false },
+    { yr:'2020', v:2.51,  flat:false },
+    { yr:'2021', v:4.49,  flat:true  },
+    { yr:'2022', v:4.62,  flat:true  },
+    { yr:'2023', v:6.30,  flat:false },
+    { yr:'2024', v:13.04, flat:false },
+    { yr:'2025', v:37.12, flat:false }
+  ];
+
+  function xAt(i) { return L + (R - L) * (i + .5) / data.length; }
+  function yAt(v) { return B - (B - T) * (v / MAX); }
+
+  var h = '';
+  [10, 20, 30, 40].forEach(function (v) {
+    h += '<line class="grid-line" x1="' + L + '" y1="' + yAt(v) + '" x2="' + R + '" y2="' + yAt(v) + '"></line>' +
+         '<text class="axis-text" x="' + (L - 12) + '" y="' + (yAt(v) + 3) + '" text-anchor="end">' + v + '</text>';
+  });
+
+  var bw = 44;
+  data.forEach(function (d, i) {
+    var y = yAt(d.v), c = d.flat ? '#b06a5a' : '#9090b8';
+    h += '<rect x="' + (xAt(i) - bw / 2) + '" y="' + y + '" width="' + bw + '" height="' + (B - y) +
+         '" fill="' + c + '" opacity="' + (d.flat ? '.20' : '.28') + '"></rect>' +
+         '<line x1="' + (xAt(i) - bw / 2) + '" y1="' + y + '" x2="' + (xAt(i) + bw / 2) + '" y2="' + y +
+         '" stroke="' + c + '" stroke-width="2"></line>' +
+         '<text class="axis-text" x="' + xAt(i) + '" y="' + (y - 11) + '" text-anchor="middle" fill="' + c + '">' +
+         d.v.toFixed(1) + '</text>' +
+         '<text class="axis-text" x="' + xAt(i) + '" y="' + (B + 20) + '" text-anchor="middle">' + d.yr + '</text>';
+  });
+
+  /* IPO marker */
+  h += '<line x1="' + xAt(1) + '" y1="' + T + '" x2="' + xAt(1) + '" y2="' + B +
+       '" stroke="#c8a068" stroke-width="1" stroke-dasharray="3 3"></line>' +
+       '<text class="axis-text" x="' + (xAt(1) + 6) + '" y="' + (T + 10) + '" fill="#c8a068">IPO &mdash; Dec 2020</text>';
+
+  h += '<line class="axis-line" x1="' + L + '" y1="' + B + '" x2="' + R + '" y2="' + B + '"></line>';
+  svg.innerHTML = h;
+})();
+</script>
+
+</body>
+</html>

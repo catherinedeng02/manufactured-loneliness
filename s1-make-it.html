@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S01 — Make It. Millions of It.</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,900;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --ink:#f0ede6;
+  --bg:#0e0e0d;
+  --steel:#9090b8;
+  --dim:#55554f;
+  --faint:#33332f;
+}
+
+body {
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'DM Mono',monospace;
+  min-height:100vh;
+}
+
+/* ══ TOP BAR ══ */
+.topbar {
+  position:sticky; top:0; z-index:50;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1rem 3rem;
+  background:rgba(14,14,13,.92);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid #1e1e1c;
+}
+.back {
+  font-size:9px; letter-spacing:.15em; text-transform:uppercase;
+  color:var(--dim); text-decoration:none;
+  display:inline-flex; align-items:center; gap:.5rem;
+  transition:color .3s;
+}
+.back:hover { color:var(--ink); }
+.back .arw { display:inline-block; transition:transform .3s; }
+.back:hover .arw { transform:translateX(-3px); }
+.crumb {
+  font-size:9px; letter-spacing:.15em; color:var(--faint); text-transform:uppercase;
+}
+
+/* ══ HERO ══ */
+.hero { padding:5.5rem 3rem 5rem; max-width:1100px; }
+.hero .num {
+  display:block; font-size:9px; letter-spacing:.2em;
+  color:var(--faint); margin-bottom:1.6rem;
+}
+.hero h1 {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(2.2rem,5.5vw,4.4rem);
+  font-weight:900; line-height:1.02; letter-spacing:-.01em;
+}
+.hero .question {
+  font-style:italic; font-size:13px; color:var(--dim);
+  margin-top:1.6rem; letter-spacing:.02em;
+}
+.hero .thesis {
+  font-size:12px; line-height:2; color:#77776f;
+  margin-top:2.6rem; max-width:640px;
+  border-left:1px solid #22221f; padding-left:1.4rem;
+}
+.hero .thesis strong { color:var(--ink); font-weight:400; }
+
+/* ══ CHAPTER ROWS ══ */
+.line { padding-bottom:6rem; }
+
+.row {
+  position:relative;
+  display:flex; align-items:baseline; gap:2.4rem;
+  padding:2.2rem 3rem;
+  border-top:1px solid #1a1a18;
+  cursor:pointer;
+  transition:background .5s ease, padding-left .5s cubic-bezier(.4,0,.2,1);
+}
+.row:last-child { border-bottom:1px solid #1a1a18; }
+.row:hover { background:#131311; padding-left:3.9rem; }
+
+/* left accent bar grows on hover */
+.row::before {
+  content:''; position:absolute; left:0; top:0; bottom:0;
+  width:2px; background:var(--steel);
+  transform:scaleY(0); transform-origin:center;
+  transition:transform .5s cubic-bezier(.4,0,.2,1);
+}
+.row:hover::before { transform:scaleY(1); }
+
+.row-idx {
+  flex-shrink:0; width:42px;
+  font-size:10px; letter-spacing:.12em; color:var(--faint);
+  transition:color .4s;
+}
+.row:hover .row-idx { color:var(--steel); }
+
+.row-body { flex:1; min-width:0; }
+
+.row-title {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(1.15rem,2.3vw,1.85rem);
+  font-weight:900; line-height:1.2; color:var(--ink);
+}
+
+.row-desc {
+  font-size:11px; font-style:italic; color:var(--dim);
+  line-height:1.8; max-width:620px;
+  margin-top:0; max-height:0; opacity:0; overflow:hidden;
+  transition:max-height .55s ease, opacity .45s ease .08s, margin-top .55s ease;
+}
+.row:hover .row-desc { max-height:90px; opacity:1; margin-top:.8rem; }
+
+.row-enter {
+  flex-shrink:0; align-self:center;
+  font-size:9px; letter-spacing:.15em; text-transform:uppercase;
+  color:var(--ink);
+  opacity:0; transform:translateX(-8px);
+  transition:opacity .4s ease, transform .4s ease;
+}
+.row:hover .row-enter { opacity:1; transform:translateX(0); }
+
+/* ── optional image layer (fades in from the right) ── */
+.row-img {
+  position:absolute; inset:0; z-index:0;
+  background-size:cover; background-position:center 45%;
+  background-repeat:no-repeat;
+  opacity:0; transition:opacity .6s ease;
+  filter:saturate(.35) brightness(.85);
+  -webkit-mask-image:linear-gradient(90deg, transparent 0%, rgba(0,0,0,.35) 45%, rgba(0,0,0,.9) 100%);
+          mask-image:linear-gradient(90deg, transparent 0%, rgba(0,0,0,.35) 45%, rgba(0,0,0,.9) 100%);
+}
+.row.has-img .row-img { opacity:.5; }
+.row.has-img:hover .row-img { opacity:.9; filter:saturate(.9) brightness(1); }
+.row > *:not(.row-img) { position:relative; z-index:2; }
+
+/* ── edit mode: only visible when toggled on ── */
+.row-edit { display:none; }
+body.editing .row-edit {
+  display:inline-flex; gap:.5rem; align-items:center;
+  position:absolute; top:.7rem; right:1rem; z-index:5;
+}
+.row-edit button {
+  background:rgba(0,0,0,.6); border:1px solid #44443f; color:#88887e;
+  font-family:'DM Mono',monospace; font-size:8px; letter-spacing:.1em;
+  text-transform:uppercase; padding:.3rem .6rem; cursor:pointer;
+  transition:color .3s, border-color .3s;
+}
+.row-edit button:hover { color:var(--ink); border-color:var(--ink); }
+
+#edit-toggle {
+  background:transparent; border:1px solid #22221f; color:#33332f;
+  font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.12em;
+  text-transform:uppercase; padding:.35rem .7rem; cursor:pointer;
+  transition:color .3s, border-color .3s;
+}
+#edit-toggle:hover, body.editing #edit-toggle { color:var(--ink); border-color:#44443f; }
+
+/* ══ FOOTNOTE ══ */
+.footnote {
+  padding:0 3rem 4rem;
+  font-size:9px; color:#2e2e2b; line-height:2;
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="index.html"><span class="arw">&larr;</span> Manufactured Loneliness</a>
+  <button id="edit-toggle">Images</button>
+</div>
+
+<section class="hero">
+  <span class="num">Section One</span>
+  <h1>Make It.<br>Millions of It.</h1>
+  <div class="question">Can loneliness be mass-produced?</div>
+  <p class="thesis">
+    Every SKULLPANDA begins as the same block of vinyl. What separates one from the next
+    is not the material but the <strong>story printed onto it</strong> &mdash; a face, a chapter,
+    a name. This section follows that story backwards: from the shelf, to the mould, to the
+    factory that learned how to make tens of millions of them a year.
+  </p>
+</section>
+
+<div class="line">
+
+  <div class="row" data-key="s1_1_1" data-href="s1-1-the-sound.html">
+    <div class="row-img"></div>
+    <span class="row-idx">1.1</span>
+    <div class="row-body">
+      <div class="row-title">Why Did It Suddenly Get So Loud?</div>
+      <div class="row-desc">
+        Everyone credits social media, but the data disagrees.
+      </div>
+    </div>
+    <span class="row-enter">Enter &rarr;</span>
+  </div>
+
+  <div class="row" data-key="s1_1_2" data-href="s1-2-the-margin.html">
+    <div class="row-img"></div>
+    <span class="row-idx">1.2</span>
+    <div class="row-body">
+      <div class="row-title">What the Margin Actually Buys</div>
+      <div class="row-desc">
+        A seventy percent margin, built in factories it doesn't own.
+      </div>
+    </div>
+    <span class="row-enter">Enter &rarr;</span>
+  </div>
+
+  <div class="row" data-key="s1_1_3" data-href="s1-3-the-paradox.html">
+    <div class="row-img"></div>
+    <span class="row-idx">1.3</span>
+    <div class="row-body">
+      <div class="row-title">The More You Make, the Less It's Worth</div>
+      <div class="row-desc">
+        The machine kept running after the magic ran out.
+      </div>
+    </div>
+    <span class="row-enter">Enter &rarr;</span>
+  </div>
+
+  <div class="row" data-key="s1_1_4" data-href="s1-4-future-predictions.html"">
+    <div class="row-img"></div>
+    <span class="row-idx">1.4</span>
+    <div class="row-body">
+      <div class="row-title">What Would You Have Paid in 2020?</div>
+      <div class="row-desc">
+        What the 2020 model could not have seen coming.
+      </div>
+    </div>
+    <span class="row-enter">Enter &rarr;</span>
+  </div>
+
+</div>
+
+<div class="footnote">
+  Financial figures in this section are drawn from Pop Mart International Group (9992.HK)
+  annual and interim reports. Production and capacity figures are sourced from sell-side
+  research and management commentary, and are labelled as estimates where used.
+</div>
+
+<script>
+/* ── navigation ── */
+document.querySelectorAll('.row[data-href]').forEach(function (row) {
+  row.addEventListener('click', function (e) {
+    if (document.body.classList.contains('editing')) return;
+    if (e.target.closest('.row-edit')) return;
+    window.location.href = row.getAttribute('data-href');
+  });
+});
+
+/* ── optional row images ──────────────────────────────────────
+   Click "Images" in the top bar to add or remove a banner for
+   each row. Images are stored locally and survive reloads.
+   Rows without an image simply stay as clean type.
+   ───────────────────────────────────────────────────────────── */
+(function () {
+  var toggle = document.getElementById('edit-toggle');
+  toggle.addEventListener('click', function () {
+    document.body.classList.toggle('editing');
+  });
+
+  document.querySelectorAll('.row[data-key]').forEach(function (row) {
+    var key   = row.getAttribute('data-key');
+    var layer = row.querySelector('.row-img');
+
+    function show(url) {
+      layer.style.backgroundImage = "url('" + url + "')";
+      row.classList.add('has-img');
+    }
+
+    var saved = null;
+    try { saved = localStorage.getItem('ml_' + key); } catch (e) {}
+    if (saved) show(saved);
+
+    /* edit controls */
+    var box = document.createElement('div');
+    box.className = 'row-edit';
+
+    var input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.style.display = 'none';
+
+    var add = document.createElement('button');
+    add.type = 'button';
+    add.textContent = 'Add';
+    add.addEventListener('click', function (e) {
+      e.stopPropagation();
+      input.click();
+    });
+
+    var del = document.createElement('button');
+    del.type = 'button';
+    del.textContent = 'Clear';
+    del.addEventListener('click', function (e) {
+      e.stopPropagation();
+      try { localStorage.removeItem('ml_' + key); } catch (err) {}
+      layer.style.backgroundImage = '';
+      row.classList.remove('has-img');
+    });
+
+    input.addEventListener('change', function () {
+      var f = input.files && input.files[0];
+      if (!f) return;
+      var reader = new FileReader();
+      reader.onload = function (ev) {
+        var tmp = new Image();
+        tmp.onload = function () {
+          var MAX = 1400, w = tmp.width, h = tmp.height;
+          if (w > MAX || h > MAX) {
+            var r = Math.min(MAX / w, MAX / h);
+            w = Math.round(w * r); h = Math.round(h * r);
+          }
+          var cv = document.createElement('canvas');
+          cv.width = w; cv.height = h;
+          cv.getContext('2d').drawImage(tmp, 0, 0, w, h);
+          var data = cv.toDataURL('image/jpeg', .82);
+          show(data);
+          try { localStorage.setItem('ml_' + key, data); }
+          catch (err) { console.warn('Storage full for ' + key, err); }
+        };
+        tmp.src = ev.target.result;
+      };
+      reader.readAsDataURL(f);
+    });
+
+    box.appendChild(add);
+    box.appendChild(del);
+    box.appendChild(input);
+    row.appendChild(box);
+  });
+})();
+</script>
+
+</body>
+</html>

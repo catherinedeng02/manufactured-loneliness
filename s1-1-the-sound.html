@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1.1 — Why Did It Suddenly Get So Loud?</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,900;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --ink:#f0ede6;
+  --bg:#0e0e0d;
+  --steel:#9090b8;
+  --dim:#55554f;
+  --faint:#33332f;
+  --line:#1e1e1c;
+  --warm:#c8a068;
+}
+
+body {
+  background:var(--bg); color:var(--ink);
+  font-family:'DM Mono',monospace; min-height:100vh;
+}
+
+/* ══ TOP BAR ══ */
+.topbar {
+  position:sticky; top:0; z-index:60;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1rem 3rem;
+  background:rgba(14,14,13,.94); backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+}
+.back {
+  font-size:9px; letter-spacing:.15em; text-transform:uppercase;
+  color:var(--dim); text-decoration:none;
+  display:inline-flex; align-items:center; gap:.5rem; transition:color .3s;
+}
+.back:hover { color:var(--ink); }
+.back .arw { display:inline-block; transition:transform .3s; }
+.back:hover .arw { transform:translateX(-3px); }
+.crumb { font-size:9px; letter-spacing:.15em; color:var(--faint); text-transform:uppercase; }
+
+/* ══ HERO IMAGE ══ */
+.hero-bg {
+  position:absolute; top:0; left:0; right:0;
+  height:80vh; min-height:540px; z-index:0;
+  background-size:cover;
+  background-position:center 20%;
+  background-repeat:no-repeat;
+  filter:saturate(.32) brightness(.72);
+  opacity:0;
+  transition:opacity 1.1s ease;
+  pointer-events:none;
+  -webkit-mask-image:linear-gradient(180deg,
+      rgba(0,0,0,.95) 0%, rgba(0,0,0,.85) 30%, rgba(0,0,0,.45) 62%,
+      rgba(0,0,0,.12) 84%, rgba(0,0,0,0) 100%);
+          mask-image:linear-gradient(180deg,
+      rgba(0,0,0,.95) 0%, rgba(0,0,0,.85) 30%, rgba(0,0,0,.45) 62%,
+      rgba(0,0,0,.12) 84%, rgba(0,0,0,0) 100%);
+}
+.hero-bg.on { opacity:1; }
+
+.hero-veil {
+  position:absolute; top:0; left:0; right:0;
+  height:80vh; min-height:540px; z-index:1; pointer-events:none;
+  background:linear-gradient(180deg,
+      rgba(14,14,13,.45) 0%, rgba(14,14,13,.28) 38%,
+      rgba(14,14,13,.66) 80%, rgba(14,14,13,1) 100%);
+}
+
+.hero-shell { position:relative; }
+.hero-shell .wrap { position:relative; z-index:2; }
+.hero-shell section { padding:9rem 0 7rem; border-bottom:none; }
+
+/* ══ LAYOUT ══ */
+.wrap { padding:0 3rem; }
+section { padding:5rem 0; border-bottom:1px solid #161614; }
+section:last-of-type { border-bottom:none; }
+
+.eyebrow {
+  font-size:9px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--faint); margin-bottom:1.4rem;
+}
+h1 {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(2rem,4.8vw,3.8rem);
+  font-weight:900; line-height:1.05; letter-spacing:-.01em;
+}
+h2 {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(1.3rem,2.6vw,2rem);
+  font-weight:900; line-height:1.2; margin-bottom:1.6rem;
+}
+.lede {
+  font-style:italic; font-size:13px; color:var(--dim);
+  margin-top:1.5rem; letter-spacing:.02em;
+}
+p.body {
+  font-size:12px; line-height:2.1; color:#8a8a80;
+  max-width:660px; margin-bottom:1.4rem;
+}
+p.body strong { color:var(--ink); font-weight:400; }
+.note {
+  font-size:10px; line-height:1.9; color:#4a4a44;
+  margin-top:1.2rem; max-width:660px;
+}
+
+/* ══ FOUR DRIVERS ══ */
+.drivers { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1px; background:var(--line); margin-top:2.5rem; }
+.driver { background:var(--bg); padding:1.8rem 1.4rem; position:relative; transition:background .4s; }
+.driver:hover { background:#131311; }
+.driver .dnum { font-size:9px; letter-spacing:.15em; color:var(--faint); margin-bottom:.9rem; }
+.driver .dname {
+  font-family:'Playfair Display',serif; font-size:1.05rem;
+  font-weight:900; line-height:1.25; margin-bottom:.7rem;
+}
+.driver .dbody { font-size:10px; line-height:1.9; color:#6a6a62; }
+.driver .dtag {
+  display:inline-block; margin-top:1rem; font-size:8px;
+  letter-spacing:.15em; text-transform:uppercase; padding:.25rem .5rem;
+  border:1px solid var(--line); color:var(--dim);
+}
+.driver.lead .dtag { border-color:var(--steel); color:var(--steel); }
+
+/* ══ CHART ══ */
+.chart-frame { margin-top:2.5rem; border:1px solid var(--line); padding:2rem 1.5rem 1.2rem; }
+.chart-head {
+  display:flex; justify-content:space-between; align-items:flex-start;
+  flex-wrap:wrap; gap:1rem; margin-bottom:2rem;
+}
+.chart-title { font-size:10px; letter-spacing:.15em; text-transform:uppercase; color:var(--dim); }
+.toggle-group { display:flex; gap:0; border:1px solid var(--line); }
+.toggle-group button {
+  background:transparent; border:none; color:var(--faint);
+  font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.1em;
+  text-transform:uppercase; padding:.5rem .9rem; cursor:pointer;
+  transition:color .3s, background .3s;
+}
+.toggle-group button + button { border-left:1px solid var(--line); }
+.toggle-group button.on { color:var(--ink); background:#1a1a18; }
+svg { width:100%; height:auto; display:block; overflow:visible; }
+.axis-line { stroke:#262623; stroke-width:1; }
+.grid-line { stroke:#1a1a18; stroke-width:1; }
+.axis-text { fill:#44443f; font-family:'DM Mono',monospace; font-size:9px; }
+.series-label { font-family:'DM Mono',monospace; font-size:9px; }
+.legend { display:flex; gap:1.6rem; margin-top:1.4rem; flex-wrap:wrap; }
+.legend span { font-size:9px; color:var(--dim); display:inline-flex; align-items:center; gap:.45rem; }
+.swatch { width:14px; height:2px; display:inline-block; }
+.readout {
+  margin-top:1.6rem; padding-top:1.2rem; border-top:1px solid var(--line);
+  font-size:11px; line-height:1.9; color:#8a8a80; min-height:66px;
+}
+.readout strong { color:var(--ink); font-weight:400; }
+
+/* ══ TIMELINE ══ */
+.tl { margin-top:2.5rem; }
+.tl-row {
+  display:flex; align-items:flex-start; gap:1.6rem;
+  padding:1.1rem 0; border-top:1px solid #161614;
+  cursor:default; transition:background .4s;
+}
+.tl-row:hover { background:#121210; }
+.tl-date { flex-shrink:0; width:92px; font-size:10px; color:var(--faint); letter-spacing:.06em; }
+.tl-dot { flex-shrink:0; width:8px; height:8px; margin-top:5px; border-radius:50%; background:var(--faint); transition:background .4s, box-shadow .4s; }
+.tl-row:hover .tl-dot { background:var(--steel); box-shadow:0 0 0 4px rgba(144,144,184,.14); }
+.tl-body { flex:1; }
+.tl-what { font-size:11.5px; color:#a5a59a; line-height:1.7; }
+.tl-what b { color:var(--ink); font-weight:400; }
+.tl-kind {
+  display:inline-block; margin-top:.5rem; font-size:8px;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--dim);
+  border:1px solid var(--line); padding:.2rem .45rem;
+}
+.tl-kind.supply { color:var(--steel); border-color:rgba(144,144,184,.35); }
+.tl-kind.social { color:var(--warm); border-color:rgba(200,160,104,.32); }
+
+/* ══ VERDICT ══ */
+.verdict {
+  border-left:2px solid var(--steel); padding:1.6rem 0 1.6rem 1.6rem;
+  margin-top:2.5rem; max-width:700px;
+}
+.verdict .vq {
+  font-family:'Playfair Display',serif; font-size:clamp(1.05rem,2vw,1.45rem);
+  font-weight:900; line-height:1.35; margin-bottom:1rem;
+}
+.verdict p { font-size:11.5px; line-height:2; color:#8a8a80; }
+
+/* ══ NEXT ══ */
+.next {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:2.5rem 3rem; border-top:1px solid var(--line);
+  text-decoration:none; color:var(--ink); transition:background .4s, padding-left .5s;
+}
+.next:hover { background:#131311; padding-left:3.9rem; }
+.next .nlabel { font-size:9px; letter-spacing:.15em; text-transform:uppercase; color:var(--faint); margin-bottom:.6rem; }
+.next .ntitle { font-family:'Playfair Display',serif; font-size:1.25rem; font-weight:900; }
+.next .narw { font-size:9px; letter-spacing:.15em; text-transform:uppercase; }
+
+.footnote { padding:2.5rem 3rem 4rem; font-size:9px; color:#2e2e2b; line-height:2; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="s1-make-it.html"><span class="arw">&larr;</span> Make It. Millions of It.</a>
+  <span class="crumb">1.1</span>
+</div>
+
+<div class="hero-shell">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="hero-veil"></div>
+  <div class="wrap">
+    <section>
+      <div class="eyebrow">Chapter 1.1</div>
+      <h1>Why Did It<br>Suddenly Get So Loud?</h1>
+      <div class="lede">Everyone credits social media, but the data disagrees.</div>
+    </section>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ══ FRAMEWORK ══ -->
+  <section>
+    <h2>Four things had to move at once.</h2>
+    <p class="body">
+      A cultural phenomenon is not one event. It is four systems firing in sequence, and
+      the order matters more than the magnitude. If we decompose the 2024&ndash;25 revenue
+      explosion into its component drivers, the question stops being
+      <em>why did it happen</em> and becomes <strong>which one moved first</strong>.
+    </p>
+
+    <div class="drivers">
+      <div class="driver">
+        <div class="dnum">Driver 01</div>
+        <div class="dname">Scarcity<br>Design</div>
+        <div class="dbody">
+          Blind-box mechanics, hidden-edition ratios, and limited drops convert a toy into
+          a lottery ticket. Structural, not seasonal &mdash; this driver was already fully
+          built by 2019.
+        </div>
+        <span class="dtag">Constant</span>
+      </div>
+
+      <div class="driver">
+        <div class="dnum">Driver 02</div>
+        <div class="dname">Channel<br>Penetration</div>
+        <div class="dbody">
+          Stores, robot shops, marketplaces, and the shift overseas. Overseas revenue share
+          moved 16.9% &rarr; 38.9% &rarr; 43.8% across 2023&ndash;25.
+        </div>
+        <span class="dtag">Gradual</span>
+      </div>
+
+      <div class="driver">
+        <div class="dnum">Driver 03</div>
+        <div class="dname">Social<br>Amplification</div>
+        <div class="dbody">
+          Celebrity carry, TikTok unboxings, resale-price screenshots. Highly visible,
+          easy to narrate &mdash; and the driver almost every account leads with.
+        </div>
+        <span class="dtag">Visible</span>
+      </div>
+
+      <div class="driver lead">
+        <div class="dnum">Driver 04</div>
+        <div class="dname">Supply<br>Elasticity</div>
+        <div class="dbody">
+          The ability to multiply output without losing unit economics. Invisible from the
+          outside &mdash; and the only driver that leaves a fingerprint in the margin line.
+        </div>
+        <span class="dtag">Moved first</span>
+      </div>
+    </div>
+
+    <p class="note">
+      Drivers 01&ndash;03 are widely discussed and easy to observe. Driver 04 is the one
+      that can be tested against the financial statements &mdash; which is what the rest of
+      this chapter does.
+    </p>
+  </section>
+
+  <!-- ══ THE MARGIN TEST ══ -->
+  <section>
+    <h2>The margin test.</h2>
+    <p class="body">
+      When a company is overrun by demand it did not plan for, the cost line tells on it.
+      Expedited production, air freight, overtime, third-party sourcing at spot prices
+      &mdash; a genuine demand shock <strong>compresses gross margin</strong> even as
+      revenue climbs. That is the signature to look for.
+    </p>
+    <p class="body">
+      Pop Mart's revenue grew 184.7% in 2025. Gross margin did not compress. It expanded by
+      5.3 points, to its highest level on record.
+    </p>
+
+    <div class="chart-frame">
+      <div class="chart-head">
+        <span class="chart-title">Revenue growth vs. gross margin &nbsp;·&nbsp; 2022&ndash;2025</span>
+        <div class="toggle-group" id="toggles">
+          <button class="on" data-mode="actual">Actual</button>
+          <button data-mode="shock">If it were a demand shock</button>
+        </div>
+      </div>
+
+      <svg viewBox="0 0 760 320" id="chart" role="img" aria-label="Revenue growth and gross margin chart">
+        <!-- grid -->
+        <g id="grid"></g>
+        <!-- bars: revenue growth -->
+        <g id="bars"></g>
+        <!-- margin line -->
+        <path id="marginPath" fill="none" stroke="#9090b8" stroke-width="2"
+              style="transition:d .7s ease"></path>
+        <g id="marginDots"></g>
+        <!-- axes -->
+        <line class="axis-line" x1="70" y1="260" x2="740" y2="260"></line>
+        <g id="xlabels"></g>
+        <g id="ylabels"></g>
+      </svg>
+
+      <div class="legend">
+        <span><i class="swatch" style="background:#2e2e2a;height:8px;width:12px;"></i> Revenue growth (YoY)</span>
+        <span><i class="swatch" style="background:#9090b8;"></i> Gross margin</span>
+      </div>
+
+      <div class="readout" id="readout"></div>
+    </div>
+  </section>
+
+  <!-- ══ SEQUENCE ══ -->
+  <section>
+    <h2>Which one moved first.</h2>
+    <p class="body">
+      Sequence is the cleanest evidence available. If social amplification were the cause,
+      the operational build-out would follow it. In practice the build-out came earlier
+      &mdash; the format, the supplier structure, and the channel footprint were all in
+      place before the loudest months arrived.
+    </p>
+
+    <div class="tl" id="timeline"></div>
+
+    <p class="note">
+      Hover a row to isolate it. Blue markers denote supply-side moves; amber markers
+      denote demand-side or attention-side events.
+    </p>
+  </section>
+
+  <!-- ══ VERDICT ══ -->
+  <section>
+    <div class="eyebrow">So what</div>
+    <div class="verdict">
+      <div class="vq">Social media set the timing. The supply chain set the ceiling.</div>
+      <p>
+        Attention is cheap and periodic; every consumer category gets its viral month.
+        What separates a spike from a step-change is whether the operation can convert
+        attention into shipped units without surrendering unit economics. Pop Mart's 2025
+        margin expansion is the evidence that it could &mdash; and it is the reason the
+        revenue line moved to a new level rather than a new peak.
+      </p>
+      <p style="margin-top:1.2rem;">
+        The strategic implication is uncomfortable for the bull case. If the binding
+        constraint was never demand, then the next constraint is not attention either.
+        It is whatever the supply system does to the thing that made it scarce &mdash;
+        which is the subject of <strong>1.3</strong>.
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<a class="next" href="s1-2-the-margin.html">
+  <div>
+    <div class="nlabel">Next &nbsp;·&nbsp; 1.2</div>
+    <div class="ntitle">What the Margin Actually Buys</div>
+  </div>
+  <span class="narw">Enter &rarr;</span>
+</a>
+
+<div class="footnote">
+  Figures from Pop Mart International Group (9992.HK) annual results, FY2022&ndash;FY2025.
+  Revenue: RMB 4.62bn (2022), 6.30bn (2023), 13.04bn (2024), 37.12bn (2025). Gross margin:
+  57.5% (2022), 61.3% (2023), 66.8% (2024), 72.1% (2025). Sequence events are dated from
+  company disclosures and results announcements; timing of attention-side events is
+  approximate.
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   HERO IMAGE — reuses the SKULLPANDA image already chosen on
+   the cover page (localStorage key 'ml_img_skullpanda'), so
+   both pages always show the same character.
+   ══════════════════════════════════════════════════════════ */
+(function () {
+  var el = document.getElementById('heroBg');
+  var img = null;
+  try { img = localStorage.getItem('ml_img_skullpanda'); } catch (e) {}
+  if (img) {
+    el.style.backgroundImage = "url('" + img + "')";
+    requestAnimationFrame(function () { el.classList.add('on'); });
+  }
+})();
+
+/* ══════════════════════════════════════════════════════════
+   DATA
+   ══════════════════════════════════════════════════════════ */
+var YEARS = ['2022', '2023', '2024', '2025'];
+
+var ACTUAL = {
+  growth: [2.8, 36.5, 106.9, 184.7],      /* revenue YoY % */
+  margin: [57.5, 61.3, 66.8, 72.1]         /* gross margin % */
+};
+
+/* Counterfactual: what a genuine, unplanned demand shock does to margin.
+   Same revenue path, but unit economics deteriorate as the operation
+   scrambles — expedited production, air freight, spot sourcing. */
+var SHOCK = {
+  growth: [2.8, 36.5, 106.9, 184.7],
+  margin: [57.5, 61.3, 58.4, 51.0]
+};
+
+var EVENTS = [
+  { date:'2023',       kind:'supply', text:'<b>Flexible supply-chain strategy</b> consolidates purchasing into a small set of core suppliers, building bargaining power before volume arrives.' },
+  { date:'2023',       kind:'supply', text:'Inventory turnover improves from <b>133 days to 102 days</b> — the operation gets faster while revenue is still growing at only 36%.' },
+  { date:'2024 H1',    kind:'supply', text:'<b>Plush is scaled as a format.</b> Category revenue grows roughly thirteenfold in the year, to 21.7% of group revenue. The manufacturing base for the eventual hit is built here.' },
+  { date:'2024',       kind:'social', text:'Celebrity carry and unboxing content push <b>THE MONSTERS</b> into global feeds. Reported IP revenue rises 726.6% to RMB 3.04bn.' },
+  { date:'2024',       kind:'supply', text:'Gross margin rises to <b>66.8%</b> (+5.5pts) — expanding, not compressing, through the first wave of demand.' },
+  { date:'2025 H1',    kind:'social', text:'Attention peaks. The Americas grow <b>1,142%</b> year on year; Europe grows 729%. This is the phase most accounts describe as the cause.' },
+  { date:'2025 FY',    kind:'supply', text:'Revenue reaches <b>RMB 37.12bn</b> (+184.7%) and gross margin reaches <b>72.1%</b> (+5.3pts). Scaling did not cost unit economics — it improved them.' }
+];
+
+/* ══════════════════════════════════════════════════════════
+   CHART
+   ══════════════════════════════════════════════════════════ */
+(function () {
+  var svg = document.getElementById('chart');
+  var W = 760, H = 320, L = 70, R = 740, T = 30, B = 260;
+  var mode = 'actual';
+
+  var maxGrowth = 200;   /* % scale for bars   */
+  var mMin = 45, mMax = 80; /* % scale for margin line */
+
+  function xAt(i) { return L + (R - L) * (i + .5) / YEARS.length; }
+  function yGrowth(v) { return B - (B - T) * (v / maxGrowth); }
+  function yMargin(v) { return B - (B - T) * ((v - mMin) / (mMax - mMin)); }
+
+  /* grid + labels */
+  var grid = document.getElementById('grid');
+  var ylab = document.getElementById('ylabels');
+  [50, 100, 150, 200].forEach(function (v) {
+    var y = yGrowth(v);
+    grid.insertAdjacentHTML('beforeend',
+      '<line class="grid-line" x1="' + L + '" y1="' + y + '" x2="' + R + '" y2="' + y + '"></line>');
+    ylab.insertAdjacentHTML('beforeend',
+      '<text class="axis-text" x="' + (L - 12) + '" y="' + (y + 3) + '" text-anchor="end">' + v + '%</text>');
+  });
+
+  var xlab = document.getElementById('xlabels');
+  YEARS.forEach(function (yr, i) {
+    xlab.insertAdjacentHTML('beforeend',
+      '<text class="axis-text" x="' + xAt(i) + '" y="' + (B + 20) + '" text-anchor="middle">' + yr + '</text>');
+  });
+
+  /* bars */
+  var barsG = document.getElementById('bars');
+  var bw = 46;
+  YEARS.forEach(function (yr, i) {
+    var v = ACTUAL.growth[i];
+    var y = yGrowth(v);
+    barsG.insertAdjacentHTML('beforeend',
+      '<rect x="' + (xAt(i) - bw / 2) + '" y="' + y + '" width="' + bw + '" height="' + (B - y) +
+      '" fill="#262623"></rect>' +
+      '<text class="axis-text" x="' + xAt(i) + '" y="' + (y - 8) + '" text-anchor="middle" fill="#55554f">+' +
+      v + '%</text>');
+  });
+
+  /* margin line */
+  var path = document.getElementById('marginPath');
+  var dots = document.getElementById('marginDots');
+
+  function buildPath(vals) {
+    return vals.map(function (v, i) {
+      return (i ? 'L' : 'M') + xAt(i) + ' ' + yMargin(v);
+    }).join(' ');
+  }
+
+  function render() {
+    var data = (mode === 'actual') ? ACTUAL : SHOCK;
+    var colour = (mode === 'actual') ? '#9090b8' : '#c8a068';
+
+    path.setAttribute('d', buildPath(data.margin));
+    path.setAttribute('stroke', colour);
+
+    dots.innerHTML = '';
+    data.margin.forEach(function (v, i) {
+      dots.insertAdjacentHTML('beforeend',
+        '<circle cx="' + xAt(i) + '" cy="' + yMargin(v) + '" r="4" fill="' + colour + '"></circle>' +
+        '<text class="series-label" x="' + xAt(i) + '" y="' + (yMargin(v) - 14) +
+        '" text-anchor="middle" fill="' + colour + '">' + v.toFixed(1) + '%</text>');
+    });
+
+    document.querySelectorAll('.legend .swatch')[1].style.background = colour;
+
+    document.getElementById('readout').innerHTML = (mode === 'actual')
+      ? 'Revenue growth accelerates from 36.5% to 184.7%, and gross margin rises alongside it every single year &mdash; <strong>57.5% &rarr; 61.3% &rarr; 66.8% &rarr; 72.1%</strong>. The company attributes the 2025 improvement to a higher overseas mix and to concentrated purchasing from core suppliers under its flexible supply-chain strategy. Cost per unit fell while volume multiplied.'
+      : 'This is the counterfactual: the same revenue path produced by an operation that was <strong>not</strong> ready for it. Expedited runs, air freight, spot-priced third-party sourcing and overtime would drag gross margin down toward the low fifties by 2025. <strong>This is not what happened</strong> &mdash; which is the point.';
+  }
+
+  document.querySelectorAll('#toggles button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('#toggles button').forEach(function (b) { b.classList.remove('on'); });
+      btn.classList.add('on');
+      mode = btn.getAttribute('data-mode');
+      render();
+    });
+  });
+
+  render();
+})();
+
+/* ══════════════════════════════════════════════════════════
+   TIMELINE
+   ══════════════════════════════════════════════════════════ */
+(function () {
+  var tl = document.getElementById('timeline');
+  EVENTS.forEach(function (e) {
+    var row = document.createElement('div');
+    row.className = 'tl-row';
+    row.innerHTML =
+      '<span class="tl-date">' + e.date + '</span>' +
+      '<span class="tl-dot"></span>' +
+      '<div class="tl-body">' +
+        '<div class="tl-what">' + e.text + '</div>' +
+        '<span class="tl-kind ' + e.kind + '">' +
+          (e.kind === 'supply' ? 'Supply side' : 'Attention side') +
+        '</span>' +
+      '</div>';
+    tl.appendChild(row);
+  });
+})();
+</script>
+
+</body>
+</html>

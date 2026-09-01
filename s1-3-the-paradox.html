@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1.3 — The More You Make, the Less It's Worth</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,900;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --ink:#f0ede6;
+  --bg:#0e0e0d;
+  --steel:#9090b8;
+  --dim:#55554f;
+  --faint:#33332f;
+  --line:#1e1e1c;
+  --warm:#c8a068;
+  --rust:#b06a5a;
+}
+
+body { background:var(--bg); color:var(--ink); font-family:'DM Mono',monospace; min-height:100vh; }
+
+.topbar {
+  position:sticky; top:0; z-index:60;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1rem 3rem;
+  background:rgba(14,14,13,.94); backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+}
+.back {
+  font-size:9px; letter-spacing:.15em; text-transform:uppercase;
+  color:var(--dim); text-decoration:none;
+  display:inline-flex; align-items:center; gap:.5rem; transition:color .3s;
+}
+.back:hover { color:var(--ink); }
+.back .arw { display:inline-block; transition:transform .3s; }
+.back:hover .arw { transform:translateX(-3px); }
+.crumb { font-size:9px; letter-spacing:.15em; color:var(--faint); text-transform:uppercase; }
+
+.wrap { padding:0 3rem; }
+section { padding:5rem 0; border-bottom:1px solid #161614; }
+section:last-of-type { border-bottom:none; }
+
+.eyebrow { font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--faint); margin-bottom:1.4rem; }
+h1 { font-family:'Playfair Display',serif; font-size:clamp(2rem,4.8vw,3.8rem); font-weight:900; line-height:1.05; letter-spacing:-.01em; }
+h2 { font-family:'Playfair Display',serif; font-size:clamp(1.3rem,2.6vw,2rem); font-weight:900; line-height:1.2; margin-bottom:1.6rem; }
+.lede { font-style:italic; font-size:13px; color:var(--dim); margin-top:1.5rem; letter-spacing:.02em; }
+p.body { font-size:12px; line-height:2.1; color:#8a8a80; max-width:660px; margin-bottom:1.4rem; }
+p.body strong { color:var(--ink); font-weight:400; }
+.note { font-size:10px; line-height:1.9; color:#4a4a44; margin-top:1.2rem; max-width:660px; }
+
+/* mechanism */
+.mech { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:1px; background:var(--line); margin-top:2.5rem; }
+.mech-step { background:var(--bg); padding:1.7rem 1.3rem; transition:background .4s; border-top:2px solid transparent; }
+.mech-step:hover { background:#141412; }
+.mech-step .mn { font-size:8px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); margin-bottom:.9rem; }
+.mech-step .mt { font-family:'Playfair Display',serif; font-size:1rem; font-weight:900; line-height:1.25; margin-bottom:.7rem; }
+.mech-step .mb { font-size:10px; line-height:1.85; color:#6a6a62; }
+.mech-step.breaks { border-top-color:var(--rust); }
+.mech-step.breaks .mt { color:var(--rust); }
+
+/* model */
+.model { margin-top:2.5rem; border:1px solid var(--line); padding:2rem 1.5rem 1.4rem; }
+.model-head { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:1.8rem; }
+.model-title { font-size:10px; letter-spacing:.15em; text-transform:uppercase; color:var(--dim); }
+.model-flag { font-size:8px; letter-spacing:.14em; text-transform:uppercase; color:var(--warm); border:1px solid rgba(200,160,104,.32); padding:.25rem .55rem; }
+.controls { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1.8rem; margin-bottom:2rem; }
+.ctrl label { display:block; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); margin-bottom:.8rem; }
+.ctrl .cval { color:var(--ink); }
+.ctrl input[type=range] { width:100%; accent-color:#9090b8; }
+.ctrl .chint { font-size:9px; color:#3e3e3a; margin-top:.6rem; line-height:1.7; }
+
+svg { width:100%; height:auto; display:block; overflow:visible; }
+.axis-line { stroke:#262623; stroke-width:1; }
+.grid-line { stroke:#1a1a18; stroke-width:1; }
+.axis-text { fill:#44443f; font-family:'DM Mono',monospace; font-size:9px; }
+.legend { display:flex; gap:1.6rem; margin-top:1.3rem; flex-wrap:wrap; }
+.legend span { font-size:9px; color:var(--dim); display:inline-flex; align-items:center; gap:.45rem; }
+.swatch { width:14px; height:2px; display:inline-block; }
+
+.model-out { margin-top:1.6rem; padding-top:1.3rem; border-top:1px solid var(--line); }
+.model-nums { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1.4rem; margin-bottom:1.3rem; }
+.mnum .mv { font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:900; line-height:1; }
+.mnum .ml { font-size:9px; color:#5a5a54; margin-top:.6rem; line-height:1.7; }
+.model-read { font-size:11px; line-height:1.9; color:#8a8a80; min-height:56px; }
+.model-read strong { color:var(--ink); font-weight:400; }
+
+/* chart */
+.chart-frame { margin-top:2.5rem; border:1px solid var(--line); padding:2rem 1.5rem 1.2rem; }
+.chart-head { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:2rem; }
+.chart-title { font-size:10px; letter-spacing:.15em; text-transform:uppercase; color:var(--dim); }
+.readout { margin-top:1.5rem; padding-top:1.2rem; border-top:1px solid var(--line); font-size:11px; line-height:1.9; color:#8a8a80; }
+.readout strong { color:var(--ink); font-weight:400; }
+
+/* stats */
+.stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1px; background:var(--line); margin-top:2.5rem; }
+.stat { background:var(--bg); padding:1.7rem 1.3rem; }
+.stat .sv { font-family:'Playfair Display',serif; font-size:1.75rem; font-weight:900; line-height:1.1; }
+.stat .sv.warn { color:var(--rust); }
+.stat .sv.up { color:var(--steel); }
+.stat .sl { font-size:9.5px; line-height:1.8; color:#6a6a62; margin-top:.85rem; }
+
+/* verdict */
+.verdict { border-left:2px solid var(--rust); padding:1.6rem 0 1.6rem 1.6rem; margin-top:2.5rem; max-width:700px; }
+.verdict .vq { font-family:'Playfair Display',serif; font-size:clamp(1.05rem,2vw,1.45rem); font-weight:900; line-height:1.35; margin-bottom:1rem; }
+.verdict p { font-size:11.5px; line-height:2; color:#8a8a80; }
+
+/* next */
+.next {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:2.5rem 3rem; border-top:1px solid var(--line);
+  text-decoration:none; color:var(--ink); transition:background .4s, padding-left .5s;
+}
+.next:hover { background:#131311; padding-left:3.9rem; }
+.next .nlabel { font-size:9px; letter-spacing:.15em; text-transform:uppercase; color:var(--faint); margin-bottom:.6rem; }
+.next .ntitle { font-family:'Playfair Display',serif; font-size:1.25rem; font-weight:900; }
+.next .narw { font-size:9px; letter-spacing:.15em; text-transform:uppercase; }
+
+.footnote { padding:2.5rem 3rem 4rem; font-size:9px; color:#2e2e2b; line-height:2; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="s1-make-it.html"><span class="arw">&larr;</span> Make It. Millions of It.</a>
+  <span class="crumb">1.3</span>
+</div>
+
+<div class="wrap">
+
+  <section>
+    <div class="eyebrow">Chapter 1.3</div>
+    <h1>The More You Make,<br>the Less It's Worth</h1>
+    <div class="lede">The machine kept running after the magic ran out.</div>
+  </section>
+
+  <section>
+    <h2>Scarcity is not a side effect. It is the product.</h2>
+    <p class="body">
+      A blind box is not sold on its contents. It is sold on the gap between what you might
+      get and what you probably will &mdash; a gap that exists only while supply is short.
+      Queue photographs, empty shelves and resale premiums are not friction in this model.
+      <strong>They are its proof of value</strong>, displayed to the next buyer.
+    </p>
+    <p class="body">
+      Which creates a problem no amount of operational excellence can solve. Every capability
+      described in 1.1 and 1.2 &mdash; flexible supply, concentrated procurement, elastic
+      output &mdash; is a capability for <em>closing that gap</em>.
+    </p>
+
+    <div class="mech">
+      <div class="mech-step">
+        <div class="mn">Step 01</div>
+        <div class="mt">Restrict<br>supply</div>
+        <div class="mb">Limited runs and hidden-edition ratios create a queue. The queue is visible, and the visibility is the marketing.</div>
+      </div>
+      <div class="mech-step">
+        <div class="mn">Step 02</div>
+        <div class="mt">Queue becomes<br>evidence</div>
+        <div class="mb">Resale premiums and sold-out signage tell the next buyer this object is worth wanting. Desire gets socially confirmed.</div>
+      </div>
+      <div class="mech-step">
+        <div class="mn">Step 03</div>
+        <div class="mt">Demand<br>compounds</div>
+        <div class="mb">Scarcity draws attention; attention draws demand; demand deepens scarcity. The loop is self-reinforcing and highly profitable.</div>
+      </div>
+      <div class="mech-step breaks">
+        <div class="mn">Step 04</div>
+        <div class="mt">Capacity<br>answers</div>
+        <div class="mb">The operation scales to meet the queue. It succeeds. The queue disappears &mdash; and with it the evidence that made the object worth queueing for.</div>
+      </div>
+    </div>
+
+    <p class="note">
+      The paradox in one line: the company's most valuable operational capability is also the
+      mechanism most capable of dismantling its most valuable intangible asset.
+    </p>
+  </section>
+
+  <section>
+    <h2>Where the trade-off actually sits.</h2>
+    <p class="body">
+      Revenue is units multiplied by realised value. In a scarcity-driven category, realised
+      value is not independent of units &mdash; it falls as the object becomes easy to get.
+      That makes the revenue-maximising level of output different from the
+      desirability-maximising level, and it means <strong>there is a wrong answer in both
+      directions</strong>.
+    </p>
+    <p class="body">
+      Move the dial. Reported monthly output for the flagship line scaled from roughly ten
+      million units in the first half of 2025 toward a reported fifty million by year end.
+    </p>
+
+    <div class="model">
+      <div class="model-head">
+        <span class="model-title">Output vs. realised value</span>
+        <span class="model-flag">Framework, not forecast</span>
+      </div>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label>Monthly output &mdash; <span class="cval" id="qOut">10</span> million units</label>
+          <input type="range" id="qSlider" min="5" max="60" value="10" step="1">
+          <div class="chint">H1 2025 ran near 10m per month; reported year-end capacity approached 50m.</div>
+        </div>
+        <div class="ctrl">
+          <label>Scarcity sensitivity &mdash; <span class="cval" id="kOut">1.0</span></label>
+          <input type="range" id="kSlider" min="0.3" max="2" value="1" step="0.1">
+          <div class="chint">How steeply perceived value decays as the object becomes easy to obtain. Higher means the category depends more on being hard to get.</div>
+        </div>
+      </div>
+
+      <svg viewBox="0 0 760 300" id="mChart" role="img" aria-label="Output versus realised value">
+        <g id="mGrid"></g>
+        <path id="mRev" fill="none" stroke="#9090b8" stroke-width="2"></path>
+        <path id="mDes" fill="none" stroke="#b06a5a" stroke-width="2" stroke-dasharray="4 3"></path>
+        <line id="mMark" y1="30" y2="240" stroke="#c8a068" stroke-width="1"></line>
+        <circle id="mRevDot" r="4" fill="#9090b8"></circle>
+        <circle id="mDesDot" r="4" fill="#b06a5a"></circle>
+        <line class="axis-line" x1="70" y1="240" x2="740" y2="240"></line>
+        <g id="mX"></g>
+      </svg>
+
+      <div class="legend">
+        <span><i class="swatch" style="background:#9090b8"></i> Modelled revenue</span>
+        <span><i class="swatch" style="background:#b06a5a"></i> Modelled desirability</span>
+        <span><i class="swatch" style="background:#c8a068"></i> Current setting</span>
+      </div>
+
+      <div class="model-out">
+        <div class="model-nums">
+          <div class="mnum">
+            <div class="mv" id="nRev">&mdash;</div>
+            <div class="ml">Revenue index, against the peak achievable at this sensitivity</div>
+          </div>
+          <div class="mnum">
+            <div class="mv" id="nDes">&mdash;</div>
+            <div class="ml">Desirability index &mdash; the scarcity premium remaining</div>
+          </div>
+          <div class="mnum">
+            <div class="mv" id="nOpt">&mdash;</div>
+            <div class="ml">Revenue-maximising output, million units per month</div>
+          </div>
+        </div>
+        <div class="model-read" id="mRead"></div>
+      </div>
+    </div>
+
+    <p class="note">
+      The model is deliberately simple: realised value decays exponentially with availability,
+      and revenue is the product of the two. It is not a forecast and contains no
+      company-specific price data. Its purpose is to make the shape of the trade-off visible
+      &mdash; in particular, that the revenue curve turns over while output is still rising.
+    </p>
+  </section>
+
+  <section>
+    <h2>What the reported numbers already show.</h2>
+    <p class="body">
+      The model is a framework. The disclosures are not. Three things happened in FY2025 that
+      are consistent with a category arriving at the far side of that curve.
+    </p>
+
+    <div class="chart-frame">
+      <div class="chart-head">
+        <span class="chart-title">Revenue growth, year on year &nbsp;&middot;&nbsp; 2023&ndash;2026E</span>
+      </div>
+      <svg viewBox="0 0 760 280" id="gChart" role="img" aria-label="Revenue growth deceleration"></svg>
+      <div class="readout">
+        Group revenue grew <strong>184.7%</strong> in 2025 to RMB 37.12bn. At the results
+        presentation, management guided to growth of <strong>not less than 20%</strong> for
+        2026. Even read as a deliberately conservative floor, the implied deceleration is the
+        steepest in the company's listed history.
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="sv warn">38.1%</div>
+        <div class="sl">THE MONSTERS share of group revenue in 2025, up from 23.3% in 2024. Concentration rose in the year the portfolio was meant to broaden.</div>
+      </div>
+      <div class="stat">
+        <div class="sv up">RMB 14.16bn</div>
+        <div class="sl">THE MONSTERS revenue, up 365.7%. One IP now earns more than the next four combined.</div>
+      </div>
+      <div class="stat">
+        <div class="sv warn">RMB 2.90bn</div>
+        <div class="sl">MOLLY revenue &mdash; materially below consensus of roughly RMB 4.6bn. The intended second curve did not arrive.</div>
+      </div>
+      <div class="stat">
+        <div class="sv">&ge; 20%</div>
+        <div class="sl">Management's stated growth target for 2026, against 184.7% delivered in 2025.</div>
+      </div>
+    </div>
+
+    <p class="body" style="margin-top:2.5rem;">
+      The concentration figure matters most. A portfolio company that multiplies output on one
+      character, and watches that character's revenue share climb from 23% to 38%, has not
+      diversified its risk. It has <strong>converted operating capability into
+      concentration</strong>. Every incremental unit of capacity was pointed at the same asset.
+    </p>
+  </section>
+
+  <section>
+    <div class="eyebrow">So what</div>
+    <div class="verdict">
+      <div class="vq">The factory did exactly what it was built to do. That is the problem.</div>
+      <p>
+        There is no operational failure in this chapter. Output scaled, margins expanded,
+        revenue nearly tripled and the supply chain held. Judged as manufacturing, 2025 was
+        close to flawless.
+      </p>
+      <p style="margin-top:1.2rem;">
+        The difficulty is that the asset being manufactured was never the vinyl. It was the
+        difficulty of obtaining the vinyl &mdash; and that asset is consumed by precisely the
+        capability the business spent five years perfecting. Scaling a scarce object is less a
+        growth strategy than a <strong>liquidation of the thing that made it scarce</strong>,
+        executed at very high margins.
+      </p>
+      <p style="margin-top:1.2rem;">
+        Which reframes the valuation question entirely. If the operating engine converts desire
+        into units faster than the IP engine can create new desire, then what an investor
+        underwrites is not a factory. It is the rate at which new characters can be made to
+        matter. That is where <strong>1.4</strong> begins.
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<a class="next" href="s1-4-future-predictions.html">
+  <div>
+    <div class="nlabel">Next &nbsp;&middot;&nbsp; 1.4</div>
+    <div class="ntitle">What Would You Have Paid in 2020?</div>
+  </div>
+  <span class="narw">Enter &rarr;</span>
+</a>
+
+<div class="footnote">
+  Financial figures from Pop Mart International Group (9992.HK) FY2024 and FY2025 annual
+  results. THE MONSTERS revenue RMB 14.161bn in 2025 (38.1% of group revenue) against RMB
+  3.041bn in 2024 (23.3%). MOLLY revenue RMB 2.897bn in 2025. FY2026 growth guidance of not
+  less than 20% is as stated by management at the FY2025 results presentation. Monthly output
+  figures for the flagship line are sell-side estimates rather than company disclosures. The
+  output-versus-value chart is an illustrative model and contains no company price data.
+</div>
+
+<script>
+/* ═══ MODEL ═══
+   value(q)   = exp(-k * q / 60)
+   revenue(q) = q * value(q)        peak at q* = 60 / k
+   ═══════════ */
+(function () {
+  var L = 70, R = 740, T = 30, B = 240, QMIN = 5, QMAX = 60;
+
+  var grid = document.getElementById('mGrid');
+  var xg   = document.getElementById('mX');
+  var rev  = document.getElementById('mRev');
+  var des  = document.getElementById('mDes');
+  var mark = document.getElementById('mMark');
+  var rd   = document.getElementById('mRevDot');
+  var dd   = document.getElementById('mDesDot');
+  var qS   = document.getElementById('qSlider');
+  var kS   = document.getElementById('kSlider');
+
+  function xAt(q) { return L + (R - L) * (q - QMIN) / (QMAX - QMIN); }
+  function yAt(v) { return B - (B - T) * v; }
+  function val(q, k) { return Math.exp(-k * q / 60); }
+  function revenue(q, k) { return q * val(q, k); }
+
+  [0, .25, .5, .75, 1].forEach(function (v) {
+    grid.insertAdjacentHTML('beforeend',
+      '<line class="grid-line" x1="' + L + '" y1="' + yAt(v) + '" x2="' + R + '" y2="' + yAt(v) + '"></line>');
+  });
+  [5, 15, 25, 35, 45, 60].forEach(function (q) {
+    xg.insertAdjacentHTML('beforeend',
+      '<text class="axis-text" x="' + xAt(q) + '" y="' + (B + 20) + '" text-anchor="middle">' + q + 'm</text>');
+  });
+
+  function render() {
+    var q = +qS.value, k = +kS.value;
+    document.getElementById('qOut').textContent = q;
+    document.getElementById('kOut').textContent = k.toFixed(1);
+
+    var qStar  = 60 / k;
+    var revMax = revenue(qStar, k);
+
+    var rp = [], dp = [];
+    for (var x = QMIN; x <= QMAX; x += .5) {
+      rp.push((rp.length ? 'L' : 'M') + xAt(x) + ' ' + yAt(revenue(x, k) / revMax));
+      dp.push((dp.length ? 'L' : 'M') + xAt(x) + ' ' + yAt(val(x, k)));
+    }
+    rev.setAttribute('d', rp.join(' '));
+    des.setAttribute('d', dp.join(' '));
+
+    var rv = revenue(q, k) / revMax, dv = val(q, k);
+    mark.setAttribute('x1', xAt(q));
+    mark.setAttribute('x2', xAt(q));
+    rd.setAttribute('cx', xAt(q)); rd.setAttribute('cy', yAt(rv));
+    dd.setAttribute('cx', xAt(q)); dd.setAttribute('cy', yAt(dv));
+
+    document.getElementById('nRev').textContent = Math.round(rv * 100);
+    document.getElementById('nDes').textContent = Math.round(dv * 100);
+    document.getElementById('nOpt').textContent = qStar > QMAX ? '60+' : qStar.toFixed(0);
+
+    var msg;
+    if (q < qStar - 3) {
+      msg = 'Output sits <strong>below</strong> the revenue-maximising level. The queue is intact and the scarcity premium is high, but volume is being left on the table. This is where the category lived before 2024.';
+    } else if (q <= qStar + 3) {
+      msg = 'Output is close to the <strong>revenue-maximising</strong> point. Each additional unit now adds about as much volume as it destroys in realised value &mdash; the moment at which further scaling stops being obviously correct.';
+    } else {
+      msg = 'Output has passed the peak. Revenue is <strong>falling while production rises</strong>: the queue is satisfied, the premium has decayed, and each additional unit subtracts more value than it adds. Reported capacity for the flagship line moved into this zone during the second half of 2025 under most sensitivity assumptions.';
+    }
+    document.getElementById('mRead').innerHTML = msg;
+  }
+
+  qS.addEventListener('input', render);
+  kS.addEventListener('input', render);
+  render();
+})();
+
+/* ═══ GROWTH DECELERATION ═══ */
+(function () {
+  var svg = document.getElementById('gChart');
+  var L = 70, R = 740, T = 30, B = 220, MAX = 200;
+  var data = [
+    { yr:'2023',  v:36.5,  est:false },
+    { yr:'2024',  v:106.9, est:false },
+    { yr:'2025',  v:184.7, est:false },
+    { yr:'2026E', v:20,    est:true  }
+  ];
+
+  function xAt(i) { return L + (R - L) * (i + .5) / data.length; }
+  function yAt(v) { return B - (B - T) * (v / MAX); }
+
+  var h = '';
+  [50, 100, 150, 200].forEach(function (v) {
+    h += '<line class="grid-line" x1="' + L + '" y1="' + yAt(v) + '" x2="' + R + '" y2="' + yAt(v) + '"></line>' +
+         '<text class="axis-text" x="' + (L - 12) + '" y="' + (yAt(v) + 3) + '" text-anchor="end">' + v + '%</text>';
+  });
+
+  var bw = 52;
+  data.forEach(function (d, i) {
+    var y = yAt(d.v), c = d.est ? '#b06a5a' : '#9090b8';
+    h += '<rect x="' + (xAt(i) - bw / 2) + '" y="' + y + '" width="' + bw + '" height="' + (B - y) +
+         '" fill="' + c + '" opacity="' + (d.est ? '.14' : '.26') + '"' +
+         (d.est ? ' stroke="' + c + '" stroke-dasharray="3 3"' : '') + '></rect>' +
+         '<line x1="' + (xAt(i) - bw / 2) + '" y1="' + y + '" x2="' + (xAt(i) + bw / 2) + '" y2="' + y +
+         '" stroke="' + c + '" stroke-width="2"></line>' +
+         '<text class="axis-text" x="' + xAt(i) + '" y="' + (y - 12) + '" text-anchor="middle" fill="' + c + '">+' +
+         d.v + '%</text>' +
+         '<text class="axis-text" x="' + xAt(i) + '" y="' + (B + 20) + '" text-anchor="middle">' + d.yr + '</text>';
+  });
+
+  h += '<line class="axis-line" x1="' + L + '" y1="' + B + '" x2="' + R + '" y2="' + B + '"></line>';
+  svg.innerHTML = h;
+})();
+</script>
+
+</body>
+</html>

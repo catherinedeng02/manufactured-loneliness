@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3.1 — The Shape of the Hole</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,900;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --ink:#f0ede6;
+  --bg:#0e0e0d;
+  --blush:#c86880;
+  --dim:#55554f;
+  --faint:#33332f;
+  --line:#1e1e1c;
+  --warm:#c8a068;
+  --sage:#7a9a80;
+}
+
+body { background:var(--bg); color:var(--ink); font-family:'DM Mono',monospace; min-height:100vh; }
+
+.topbar {
+  position:sticky; top:0; z-index:60;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1rem 3rem; background:rgba(14,14,13,.94); backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+}
+.back {
+  font-size:9px; letter-spacing:.15em; text-transform:uppercase;
+  color:var(--dim); text-decoration:none;
+  display:inline-flex; align-items:center; gap:.5rem; transition:color .3s;
+}
+.back:hover { color:var(--ink); }
+.back .arw { display:inline-block; transition:transform .3s; }
+.back:hover .arw { transform:translateX(-3px); }
+.crumb { font-size:9px; letter-spacing:.15em; color:var(--faint); text-transform:uppercase; }
+
+.wrap { padding:0 3rem; }
+section { padding:5rem 0; border-bottom:1px solid #161614; }
+section:last-of-type { border-bottom:none; }
+
+.eyebrow { font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--faint); margin-bottom:1.4rem; }
+h1 { font-family:'Playfair Display',serif; font-size:clamp(2rem,4.8vw,3.8rem); font-weight:900; line-height:1.05; letter-spacing:-.01em; }
+h2 { font-family:'Playfair Display',serif; font-size:clamp(1.3rem,2.6vw,2rem); font-weight:900; line-height:1.2; margin-bottom:1.6rem; }
+.lede { font-style:italic; font-size:13px; color:var(--dim); margin-top:1.5rem; letter-spacing:.02em; }
+p.body { font-size:12px; line-height:2.1; color:#8a8a80; max-width:660px; margin-bottom:1.4rem; }
+p.body strong { color:var(--ink); font-weight:400; }
+.note { font-size:10px; line-height:1.9; color:#4a4a44; margin-top:1.2rem; max-width:660px; }
+
+.chart-frame { margin-top:2.5rem; border:1px solid var(--line); padding:2rem 1.5rem 1.2rem; }
+.chart-head { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:2rem; }
+.chart-title { font-size:10px; letter-spacing:.15em; text-transform:uppercase; color:var(--dim); }
+.toggle-group { display:flex; border:1px solid var(--line); }
+.toggle-group button {
+  background:transparent; border:none; color:var(--faint);
+  font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.1em;
+  text-transform:uppercase; padding:.5rem .9rem; cursor:pointer;
+  transition:color .3s, background .3s;
+}
+.toggle-group button + button { border-left:1px solid var(--line); }
+.toggle-group button.on { color:var(--ink); background:#1a1a18; }
+svg { width:100%; height:auto; display:block; overflow:visible; }
+.axis-line { stroke:#262623; stroke-width:1; }
+.grid-line { stroke:#1a1a18; stroke-width:1; }
+.axis-text { fill:#44443f; font-family:'DM Mono',monospace; font-size:9px; }
+.readout { margin-top:1.5rem; padding-top:1.2rem; border-top:1px solid var(--line); font-size:11px; line-height:1.95; color:#8a8a80; min-height:84px; }
+.readout strong { color:var(--ink); font-weight:400; }
+
+.stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1px; background:var(--line); margin-top:2.5rem; }
+.stat { background:var(--bg); padding:1.7rem 1.3rem; }
+.stat .sv { font-family:'Playfair Display',serif; font-size:1.75rem; font-weight:900; line-height:1.1; }
+.stat .sv.risk { color:var(--blush); }
+.stat .sv.good { color:var(--sage); }
+.stat .sl { font-size:9.5px; line-height:1.8; color:#6a6a62; margin-top:.85rem; }
+
+.cases { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1px; background:var(--line); margin-top:2.5rem; }
+.case { background:var(--bg); padding:2rem 1.6rem; border-top:2px solid transparent; transition:background .4s; }
+.case:hover { background:#141412; }
+.case.bear { border-top-color:var(--blush); }
+.case.bull { border-top-color:var(--sage); }
+.case .cl { font-size:8px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); margin-bottom:1rem; }
+.case .ct { font-family:'Playfair Display',serif; font-size:1.2rem; font-weight:900; line-height:1.2; margin-bottom:1.2rem; }
+.case.bear .ct { color:var(--blush); }
+.case.bull .ct { color:var(--sage); }
+.case ul { list-style:none; }
+.case li {
+  font-size:10.5px; line-height:1.9; color:#7a7a72;
+  padding:.7rem 0 .7rem 1.1rem; border-top:1px solid #181816; position:relative;
+}
+.case li:first-child { border-top:none; }
+.case li::before { content:'\2014'; position:absolute; left:0; color:var(--faint); }
+.case li b { color:var(--ink); font-weight:400; }
+
+.model { margin-top:2.5rem; border:1px solid var(--line); padding:2rem 1.5rem 1.4rem; }
+.model-head { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:1.8rem; }
+.model-title { font-size:10px; letter-spacing:.15em; text-transform:uppercase; color:var(--dim); }
+.model-flag { font-size:8px; letter-spacing:.14em; text-transform:uppercase; color:var(--warm); border:1px solid rgba(200,160,104,.32); padding:.25rem .55rem; }
+.controls { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1.8rem; margin-bottom:2rem; }
+.ctrl label { display:block; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); margin-bottom:.8rem; }
+.ctrl .cval { color:var(--ink); }
+.ctrl input[type=range] { width:100%; accent-color:#c86880; }
+.ctrl .chint { font-size:9px; color:#3e3e3a; margin-top:.6rem; line-height:1.7; }
+
+.mgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1.4rem; margin-top:1.8rem; padding-top:1.6rem; border-top:1px solid var(--line); }
+.mcell .mv { font-family:'Playfair Display',serif; font-size:1.65rem; font-weight:900; line-height:1.1; }
+.mcell .mv.hero { color:var(--blush); font-size:2rem; }
+.mcell .ml { font-size:9px; color:#5a5a54; margin-top:.6rem; line-height:1.7; }
+.model-read { margin-top:1.6rem; padding-top:1.3rem; border-top:1px solid var(--line); font-size:11px; line-height:1.95; color:#8a8a80; min-height:76px; }
+.model-read strong { color:var(--ink); font-weight:400; }
+
+.verdict { border-left:2px solid var(--blush); padding:1.6rem 0 1.6rem 1.6rem; margin-top:2.5rem; max-width:700px; }
+.verdict .vq { font-family:'Playfair Display',serif; font-size:clamp(1.05rem,2vw,1.45rem); font-weight:900; line-height:1.35; margin-bottom:1rem; }
+.verdict p { font-size:11.5px; line-height:2; color:#8a8a80; }
+
+.next {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:2.5rem 3rem; border-top:1px solid var(--line);
+  text-decoration:none; color:var(--ink); transition:background .4s, padding-left .5s;
+}
+.next:hover { background:#131311; padding-left:3.9rem; }
+.next .nlabel { font-size:9px; letter-spacing:.15em; text-transform:uppercase; color:var(--faint); margin-bottom:.6rem; }
+.next .ntitle { font-family:'Playfair Display',serif; font-size:1.25rem; font-weight:900; }
+.next .narw { font-size:9px; letter-spacing:.15em; text-transform:uppercase; }
+
+.footnote { padding:2.5rem 3rem 4rem; font-size:9px; color:#2e2e2b; line-height:2; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="s3-missing.html"><span class="arw">&larr;</span> Something Is Still Missing.</a>
+  <span class="crumb">3.1</span>
+</div>
+
+<div class="wrap">
+
+  <section>
+    <div class="eyebrow">Chapter 3.1</div>
+    <h1>The Shape<br>of the Hole</h1>
+    <div class="lede">Thirty-eight percent of revenue rests on one face.</div>
+  </section>
+
+  <section>
+    <h2>The portfolio changed shape while it grew.</h2>
+    <p class="body">
+      In 2024 Pop Mart looked like a portfolio company. Its largest IP contributed 23.3% of
+      revenue and its second contributed 16.1% &mdash; a reasonably distributed book of
+      characters, none individually decisive. Twelve months later the largest contributes
+      <strong>38.1%</strong> and the second contributes 9.5%.
+    </p>
+    <p class="body">
+      Nothing shrank. Every major IP grew, several by more than 150%. The concentration is
+      not the result of failure elsewhere &mdash; it is the result of one character growing
+      365.7% while everything else grew merely very fast.
+    </p>
+
+    <div class="chart-frame">
+      <div class="chart-head">
+        <span class="chart-title">IP share of group revenue</span>
+        <div class="toggle-group" id="toggles">
+          <button data-year="2024">FY2024</button>
+          <button class="on" data-year="2025">FY2025</button>
+        </div>
+      </div>
+      <svg viewBox="0 0 760 330" id="chart" role="img" aria-label="IP revenue concentration"></svg>
+      <div class="readout" id="readout"></div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="sv risk">38.1%</div>
+        <div class="sl">THE MONSTERS share of FY2025 revenue, from 23.3% a year earlier.</div>
+      </div>
+      <div class="stat">
+        <div class="sv risk">1.17&times;</div>
+        <div class="sl">THE MONSTERS revenue as a multiple of the next four IPs combined.</div>
+      </div>
+      <div class="stat">
+        <div class="sv">+72%</div>
+        <div class="sl">Increase in portfolio concentration, on a Herfindahl index of disclosed IP shares.</div>
+      </div>
+      <div class="stat">
+        <div class="sv good">17</div>
+        <div class="sl">Artist IPs earning above RMB 100m in 2025, of which six exceeded RMB 2bn.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Both readings of this table are defensible.</h2>
+    <p class="body">
+      Concentration is usually presented as self-evidently bad. Here it is not, and an
+      analysis that only makes the bear case is not doing the work. Management's position
+      &mdash; that THE MONSTERS is a family of characters rather than a single hit, and that
+      the incubation engine is demonstrably still producing &mdash; is supported by real
+      numbers in the same disclosure.
+    </p>
+
+    <div class="cases">
+      <div class="case bear">
+        <div class="cl">The concentration case</div>
+        <div class="ct">One face is carrying the year</div>
+        <ul>
+          <li>THE MONSTERS at <b>RMB 14.16bn</b> earns more than SKULLPANDA, CRYBABY, MOLLY and DIMOO <b>combined</b>.</li>
+          <li>Concentration rose in the year the portfolio was supposed to broaden &mdash; 23.3% to 38.1%.</li>
+          <li>MOLLY, the classic IP and the intended second curve, grew <b>38.4%</b> against a group average of 184.7%. It is now the fourth largest.</li>
+          <li>A character-led business has no mechanism to defend against taste. Nothing in the supply chain, the store network or the app protects a face that stops being wanted.</li>
+        </ul>
+      </div>
+
+      <div class="case bull">
+        <div class="cl">The platform case</div>
+        <div class="ct">The engine produced a new one</div>
+        <ul>
+          <li><b>星星人 grew from RMB 120m to RMB 2.06bn</b> in a single year &mdash; up 1,602%, and now larger than HIRONO. It was signed in August 2024.</li>
+          <li>Six IPs cleared RMB 2bn and seventeen cleared RMB 100m. That is a roster, not a single act.</li>
+          <li>Artist-originated IP rose to <b>90.0%</b> of revenue from 85.3% &mdash; the growth came from characters the company controls, not licences it rents.</li>
+          <li>THE MONSTERS is a family &mdash; LABUBU, ZIMOMO, MOKOKO &mdash; not one product line. Its internal composition is more diversified than the segment label suggests.</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="body" style="margin-top:2.5rem;">
+      The honest position sits between them, and it is uncomfortable for both sides.
+      <strong>星星人 is a single observation.</strong> One IP going from nothing to RMB 2bn
+      in twelve months either demonstrates a repeatable incubation capability or records a
+      fortunate year in an unusually favourable market. The disclosures cannot distinguish
+      between those readings, and neither can anyone outside the company.
+    </p>
+  </section>
+
+  <section>
+    <h2>How much has to be replaced, and by how many.</h2>
+    <p class="body">
+      The way to size a concentration risk is not to argue about whether the hit will fade.
+      It is to ask what standing still would require if it did. Set a decline for THE MONSTERS
+      and see how many new IPs of a given size are needed to hold group revenue flat.
+    </p>
+
+    <div class="model">
+      <div class="model-head">
+        <span class="model-title">Replacement requirement &nbsp;&middot;&nbsp; FY2025 base</span>
+        <span class="model-flag">Sensitivity, not forecast</span>
+      </div>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label>THE MONSTERS decline &mdash; <span class="cval" id="dOut">30</span>%</label>
+          <input type="range" id="dSlider" min="0" max="80" value="30" step="5">
+          <div class="chint">FY2025 base RMB 14.16bn.</div>
+        </div>
+        <div class="ctrl">
+          <label>Size of each new IP &mdash; RMB <span class="cval" id="sOut">2.06</span>bn</label>
+          <input type="range" id="sSlider" min="0.5" max="5" value="2.06" step="0.1">
+          <div class="chint">Default is 星星人's FY2025 revenue &mdash; the best recent example of a new character reaching scale.</div>
+        </div>
+      </div>
+
+      <div class="mgrid">
+        <div class="mcell">
+          <div class="mv" id="vLost">&mdash;</div>
+          <div class="ml">Revenue lost, RMB bn</div>
+        </div>
+        <div class="mcell">
+          <div class="mv hero" id="vCount">&mdash;</div>
+          <div class="ml">New IPs of that size needed to stand still</div>
+        </div>
+        <div class="mcell">
+          <div class="mv" id="vShare">&mdash;</div>
+          <div class="ml">Group revenue as a share of FY2025, before any other growth</div>
+        </div>
+      </div>
+
+      <div class="model-read" id="mRead"></div>
+    </div>
+
+    <p class="note">
+      Deliberately static: it holds every other IP flat and ignores the operating leverage and
+      channel growth described in Sections One and Two. Its only purpose is to convert a
+      percentage into a number of characters &mdash; because characters, not percentages, are
+      what the company has to produce.
+    </p>
+  </section>
+
+  <section>
+    <div class="eyebrow">So what</div>
+    <div class="verdict">
+      <div class="vq">The risk is not that the hit fades. It is that nobody knows the replacement rate.</div>
+      <p>
+        Every character-driven business lives with decay; that is the category, not a defect.
+        Sanrio has watched Hello Kitty rise and fall across five decades. What separates a
+        franchise from a fad is not whether the current hit lasts, but whether the
+        organisation reliably produces the next one before it is needed.
+      </p>
+      <p style="margin-top:1.2rem;">
+        Pop Mart has exactly one clean recent data point on that question, and it is a good
+        one: 星星人, signed in August 2024, at RMB 2.06bn twelve months later. Against it sits
+        MOLLY at +38.4% &mdash; the classic IP, given every advantage of scale and
+        distribution, growing at a fifth of the group rate. <strong>One engine started; one
+        did not restart.</strong>
+      </p>
+      <p style="margin-top:1.2rem;">
+        A company that cannot yet demonstrate its replacement rate has two ways to raise it:
+        build faster, or buy. Pop Mart has never bought. Three companies that faced this same
+        question &mdash; and answered it three different ways &mdash; are the subject of
+        <strong>3.2</strong>.
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<a class="next" href="s3-2-three-mirrors.html">
+  <div>
+    <div class="nlabel">Next &nbsp;&middot;&nbsp; 3.2</div>
+    <div class="ntitle">Three Futures, Already Lived</div>
+  </div>
+  <span class="narw">Enter &rarr;</span>
+</a>
+
+<div class="footnote">
+  FY2025 IP revenue: THE MONSTERS RMB 14.161bn (+365.7%), SKULLPANDA RMB 3.540bn (+170.6%),
+  CRYBABY RMB 2.929bn (+151.4%), MOLLY RMB 2.897bn (+38.4%), DIMOO RMB 2.777bn (+205.3%),
+  星星人 RMB 2.056bn (+1,602%), HIRONO RMB 1.735bn. Group revenue RMB 37.120bn. FY2024
+  comparatives: THE MONSTERS RMB 3.041bn (23.3% of group), MOLLY RMB 2.093bn, SKULLPANDA RMB
+  1.308bn, CRYBABY RMB 1.165bn, DIMOO RMB 0.910bn, 星星人 RMB 0.120bn; group revenue RMB
+  13.038bn. Seventeen artist IPs earned above RMB 100m in 2025 and six above RMB 2bn.
+  Artist-originated IP represented 90.0% of revenue against 85.3% in 2024; licensed IP revenue
+  grew 111.3% to RMB 3.38bn. The Herfindahl comparison uses disclosed IP shares only and
+  excludes undisclosed smaller IPs. The replacement model is illustrative and is not a forecast.
+</div>
+
+<script>
+var DATA = {
+  '2024': {
+    total: 13.038,
+    ips: [
+      { n:'THE MONSTERS', v:3.041 },
+      { n:'MOLLY',        v:2.093 },
+      { n:'SKULLPANDA',   v:1.308 },
+      { n:'CRYBABY',      v:1.165 },
+      { n:'DIMOO',        v:0.910 },
+      { n:'\u661F\u661F\u4EBA', v:0.120 }
+    ],
+    text: 'A distributed book. THE MONSTERS leads at <strong>23.3%</strong> with MOLLY close behind at 16.1%. No single character determines the year, and the top two together account for under 40% of revenue. This is what a portfolio company looks like on a page.'
+  },
+  '2025': {
+    total: 37.120,
+    ips: [
+      { n:'THE MONSTERS', v:14.161 },
+      { n:'SKULLPANDA',   v:3.540 },
+      { n:'CRYBABY',      v:2.929 },
+      { n:'MOLLY',        v:2.897 },
+      { n:'DIMOO',        v:2.777 },
+      { n:'\u661F\u661F\u4EBA', v:2.056 }
+    ],
+    text: 'One year later the shape is different. THE MONSTERS at <strong>38.1%</strong> is larger than the next four combined, and MOLLY has fallen from second to fourth. Note what did <em>not</em> happen: nothing declined. Every IP shown grew, four of them by over 150%. The concentration was produced by one line growing 365.7% \u2014 and by \u661F\u661F\u4EBA arriving from almost nothing.'
+  }
+};
+
+(function () {
+  var svg = document.getElementById('chart');
+  var L = 140, R = 730, T = 30, B = 280;
+  var year = '2025';
+
+  function render() {
+    var d = DATA[year];
+    var ips = d.ips;
+    var maxShare = 40;
+
+    function yAt(i) { return T + (B - T) * (i + .5) / ips.length; }
+    function xAt(v) { return L + (R - L) * (v / maxShare); }
+
+    var h = '';
+    [0, 10, 20, 30, 40].forEach(function (v) {
+      h += '<line class="grid-line" x1="' + xAt(v) + '" y1="' + T + '" x2="' + xAt(v) + '" y2="' + B + '"></line>' +
+           '<text class="axis-text" x="' + xAt(v) + '" y="' + (B + 20) + '" text-anchor="middle">' + v + '%</text>';
+    });
+
+    var bh = 22;
+    ips.forEach(function (ip, i) {
+      var share = ip.v / d.total * 100;
+      var y = yAt(i);
+      var lead = (i === 0);
+      var c = lead ? '#c86880' : '#7a7a72';
+      h += '<text class="axis-text" x="' + (L - 14) + '" y="' + (y + 4) + '" text-anchor="end" fill="' +
+           (lead ? '#c86880' : '#6a6a62') + '">' + ip.n + '</text>' +
+           '<rect x="' + L + '" y="' + (y - bh / 2) + '" width="' + (xAt(share) - L) + '" height="' + bh +
+           '" fill="' + c + '" opacity="' + (lead ? '.36' : '.20') + '"></rect>' +
+           '<line x1="' + xAt(share) + '" y1="' + (y - bh / 2) + '" x2="' + xAt(share) + '" y2="' + (y + bh / 2) +
+           '" stroke="' + c + '" stroke-width="2"></line>' +
+           '<text class="axis-text" x="' + (xAt(share) + 10) + '" y="' + (y + 4) + '" fill="' + c + '">' +
+           share.toFixed(1) + '%</text>';
+    });
+
+    h += '<line class="axis-line" x1="' + L + '" y1="' + B + '" x2="' + R + '" y2="' + B + '"></line>';
+    svg.innerHTML = h;
+    document.getElementById('readout').innerHTML = d.text;
+  }
+
+  document.querySelectorAll('#toggles button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('#toggles button').forEach(function (b) { b.classList.remove('on'); });
+      btn.classList.add('on');
+      year = btn.getAttribute('data-year');
+      render();
+    });
+  });
+
+  render();
+})();
+
+(function () {
+  var MONSTERS = 14.161;
+  var GROUP    = 37.120;
+
+  var dS = document.getElementById('dSlider');
+  var sS = document.getElementById('sSlider');
+
+  function render() {
+    var d = +dS.value / 100;
+    var s = +sS.value;
+
+    document.getElementById('dOut').textContent = dS.value;
+    document.getElementById('sOut').textContent = s.toFixed(2);
+
+    var lost   = MONSTERS * d;
+    var count  = lost / s;
+    var newTot = GROUP - lost;
+
+    document.getElementById('vLost').textContent  = lost.toFixed(2);
+    document.getElementById('vCount').textContent = count < 0.05 ? '0' : count.toFixed(1);
+    document.getElementById('vShare').textContent = Math.round(newTot / GROUP * 100) + '%';
+
+    var msg;
+    if (d === 0) {
+      msg = 'No decline assumed. Worth noting this is the only scenario in which the company ' +
+            'needs nothing new &mdash; and that no character-led business has stayed here permanently.';
+    } else if (count <= 1.2) {
+      msg = 'A little over one new IP at this scale covers the gap. Given the company produced ' +
+            'exactly one such IP in 2025, this is <strong>within demonstrated capability</strong> ' +
+            '&mdash; though it consumes an entire year of incubation output simply to stand still.';
+    } else if (count <= 3) {
+      msg = 'This requires <strong>' + count.toFixed(1) + ' new IPs of \u661F\u661F\u4EBA scale</strong> ' +
+            'to hold revenue flat. The company has demonstrated one. Producing three inside the window ' +
+            'in which a fading hit actually fades is a materially different proposition from producing ' +
+            'one in a favourable year.';
+    } else {
+      msg = 'At this level the arithmetic stops being about incubation. <strong>' +
+            count.toFixed(1) + ' new IPs at this scale</strong> is not a pipeline &mdash; it is a ' +
+            'portfolio the company would have to acquire rather than grow. This is the quadrant in ' +
+            'which M&amp;A stops being optional.';
+    }
+    document.getElementById('mRead').innerHTML = msg;
+  }
+
+  dS.addEventListener('input', render);
+  sS.addEventListener('input', render);
+  render();
+})();
+</script>
+
+</body>
+</html>
