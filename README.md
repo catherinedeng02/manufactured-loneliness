@@ -4,7 +4,7 @@
 
 *As the world grew lonelier, people began to buy a friend.*
 
-**→ [View the project](https://catherinedeng02.github.io/manufactured-loneliness/)**
+**→ [View project](https://catherinedeng02.github.io/manufactured-loneliness/)**
 
 ---
 
